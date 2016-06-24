@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.appland.settlers.model.GameMap;
+import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
+import org.appland.settlers.model.Size;
 import org.appland.settlers.model.Terrain;
 import org.appland.settlers.model.Tile;
 import org.appland.settlers.model.Tile.Vegetation;
@@ -407,8 +409,6 @@ public class MapLoader {
                 spotList.get(i).setObjectProperties(Utils.getUnsignedByteInArray(reusedArray, i));
             }
 
-            System.out.println(" -- Ignored object properties");
-
             /*
             
             
@@ -622,12 +622,6 @@ public class MapLoader {
         int nr = 1;
         for (SpotData spot : mf.getSpots()) {
 
-/*            org.appland.settlers.model.Point p0 = new org.appland.settlers.model.Point(index - 1, row);
-            org.appland.settlers.model.Point p1 = new org.appland.settlers.model.Point(index, row + 1);
-            org.appland.settlers.model.Point p2 = new org.appland.settlers.model.Point(index + 1, row);
-            org.appland.settlers.model.Point p3 = new org.appland.settlers.model.Point(index + 2, row + 1);
-*/
-
             org.appland.settlers.model.Point p0 = new org.appland.settlers.model.Point(index - 1, row);
             org.appland.settlers.model.Point p1 = new org.appland.settlers.model.Point(index, row - 1);
             org.appland.settlers.model.Point p2 = new org.appland.settlers.model.Point(index + 1, row);
@@ -639,14 +633,31 @@ public class MapLoader {
             Vegetation vegetationDown = Utils.convertTextureToVegetation(spot.getTextureBelow());
 
             tileDown.setVegetationType(vegetationDown);
-//            System.out.println("Set " + p0 + " " + p1 + " " + p2 + " to " + vegetationDown.name());
 
             Tile tileDownRight = terrain.getTile(p1, p2, p3);
 
             Vegetation vegetationDownRight = Utils.convertTextureToVegetation(spot.getTextureDownRight());
-//            System.out.println("Set " + p1 + " " + p2 + " " + p3 + " to " + vegetationDown.name());
 
             tileDownRight.setVegetationType(vegetationDownRight);
+
+            /* Set mineral quantities */
+            if (spot.hasMineral()) {
+                Material mineral = Utils.resourceTypeToMaterial(spot.getMineralType());
+
+                // TODO: Calculate the right size instead of just choosing LARGE
+
+                tileDown.setAmountMineral(mineral, Size.LARGE);
+            }
+
+            /* Place stones */
+            if (spot.hasStone()) {
+                gm.placeStone(p1);
+            }
+
+            /* Place trees */
+            if (spot.hasTree()) {
+                gm.placeTree(p1);
+            }
 
             if (index == gm.getWidth() - 2) {
                 index = 2;

@@ -6,6 +6,7 @@
 package org.appland.settlers.maps;
 
 import java.nio.ByteBuffer;
+import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Tile;
 
 /**
@@ -13,27 +14,6 @@ import org.appland.settlers.model.Tile;
  * @author johan
  */
 public class Utils {
-
-/*    static int getShortInArray(byte[] arr, int i) {
-        int b1 = (0x000000FF & ((int)arr[i]));
-        int b2 = (0x000000FF & ((int)arr[i + 1]));
-
-//        System.out.println("           -- " + (int) (b1 << 8 | b2) + " == " + (int)ByteBuffer.wrap(arr).getChar(0));
-        //return (int) (b1 << 8 | b2);
-        return (int)ByteBuffer.wrap(arr).getChar(i);
-    }
-
-    static long getIntInArray(byte[] arr, int i) {
-        int b1 = (0x000000FF & arr[i]);
-        int b2 = (0x000000FF & arr[i + 1]);
-        int b3 = (0x000000FF & arr[i + 2]);
-        int b4 = (0x000000FF & arr[i + 3]);
-        return ((long) (b1 << 24
-	                | b2 << 16
-                        | b3 << 8
-                        | b3))
-                       & 0xFFFFFFFFL;
-    }*/
 
     public static short getUnsignedByteInArray (byte[] arr, int i) {
         ByteBuffer bb = ByteBuffer.wrap(arr);
@@ -101,6 +81,21 @@ public class Utils {
             default:
                 return Tile.Vegetation.OTHER;
 
+        }
+    }
+
+    static Material resourceTypeToMaterial(ResourceType mineralType) {
+        switch (mineralType) {
+            case COAL:
+                return Material.COAL;
+            case IRON_ORE:
+                return Material.IRON;
+            case GOLD:
+                return Material.GOLD;
+            case GRANITE:
+                return Material.STONE;
+            default:
+                return null;
         }
     }
 }

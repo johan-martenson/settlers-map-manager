@@ -10,6 +10,11 @@ package org.appland.settlers.maps;
  * @author johan
  */
 class Resource {
+    private static final int COAL_OFFSET = 64;
+    private static final int IRON_OFFSET = 72;
+    private static final int GOLD_OFFSET = 80;
+    private static final int GRANITE_OFFSET = 88;
+
     ResourceType type;
     int amount;
 
@@ -22,9 +27,22 @@ class Resource {
         ResourceType type = ResourceType.resourceTypeFromInt(i);
 
         int amount = 0;
-        if (type == ResourceType.COAL || type == ResourceType.IRON_ORE ||
-            type == ResourceType.GOLD || type == ResourceType.GRANITE) {
-            amount = i;
+
+        if (null != type) switch (type) {
+            case COAL:
+                amount = i - COAL_OFFSET;
+                break;
+            case IRON_ORE:
+                amount = i - IRON_OFFSET;
+                break;
+            case GOLD:
+                amount = i - GOLD_OFFSET;
+                break;
+            case GRANITE:
+                amount = i - GRANITE_OFFSET;
+                break;
+            default:
+                break;
         }
 
         if (type == null) {
