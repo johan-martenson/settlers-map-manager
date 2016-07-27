@@ -618,27 +618,28 @@ public class MapLoader {
         /* Set up the terrain */
         Terrain terrain = gm.getTerrain();
         int row = 1;
-        int index = 2;
+        int index = 1;
         int nr = 1;
         for (SpotData spot : mf.getSpots()) {
 
-            org.appland.settlers.model.Point p0 = new org.appland.settlers.model.Point(index - 1, row);
-            org.appland.settlers.model.Point p1 = new org.appland.settlers.model.Point(index, row - 1);
-            org.appland.settlers.model.Point p2 = new org.appland.settlers.model.Point(index + 1, row);
-            org.appland.settlers.model.Point p3 = new org.appland.settlers.model.Point(index + 2, row - 1);
+            /* Set triangles above, instead of below because the iteration starts
+               from the bottom and runs upwards
+            
+               This will look good but the maps are rendered upside down
+            */
+            org.appland.settlers.model.Point p0 = new org.appland.settlers.model.Point(index - 1, row + 1);
+            org.appland.settlers.model.Point p1 = new org.appland.settlers.model.Point(index, row);
+            org.appland.settlers.model.Point p2 = new org.appland.settlers.model.Point(index + 1, row + 1);
+            org.appland.settlers.model.Point p3 = new org.appland.settlers.model.Point(index + 2, row);
 
+            Tile tileUp = terrain.getTile(p0, p1, p2);
+            Tile tileUpRight = terrain.getTile(p1, p2, p3);
 
-            Tile tileDown = terrain.getTile(p0, p1, p2);
+            Vegetation vegetationUp = Utils.convertTextureToVegetation(spot.getTextureBelow());
+            Vegetation vegetationUpRight = Utils.convertTextureToVegetation(spot.getTextureDownRight());
 
-            Vegetation vegetationDown = Utils.convertTextureToVegetation(spot.getTextureBelow());
-
-            tileDown.setVegetationType(vegetationDown);
-
-            Tile tileDownRight = terrain.getTile(p1, p2, p3);
-
-            Vegetation vegetationDownRight = Utils.convertTextureToVegetation(spot.getTextureDownRight());
-
-            tileDownRight.setVegetationType(vegetationDownRight);
+            tileUp.setVegetationType(vegetationUp);
+            tileUpRight.setVegetationType(vegetationUpRight);
 
             /* Set mineral quantities */
             if (spot.hasMineral()) {
@@ -646,7 +647,7 @@ public class MapLoader {
 
                 // TODO: Calculate the right size instead of just choosing LARGE
 
-                tileDown.setAmountMineral(mineral, Size.LARGE);
+                tileUp.setAmountMineral(mineral, Size.LARGE);
             }
 
             /* Place stones */

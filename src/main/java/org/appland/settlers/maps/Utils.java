@@ -79,7 +79,7 @@ public class Utils {
             case LAVA_3:
             case LAVA_4:
             default:
-                return Tile.Vegetation.OTHER;
+                return Tile.Vegetation.MOUNTAIN;
 
         }
     }
