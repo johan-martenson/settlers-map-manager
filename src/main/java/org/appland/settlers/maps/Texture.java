@@ -37,7 +37,7 @@ public enum Texture {
 
     private int id;
 
-    private Texture(int id) {
+    Texture(int id) {
         this.id = id;
     }
 
