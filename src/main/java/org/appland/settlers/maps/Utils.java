@@ -5,9 +5,12 @@
  */
 package org.appland.settlers.maps;
 
-import java.nio.ByteBuffer;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Tile;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  *
@@ -45,42 +48,36 @@ public class Utils {
     }
 
     static Tile.Vegetation convertTextureToVegetation(Texture textureBelow) {
-        switch (textureBelow) {
-            case MOUNTAIN:
-            case MOUNTAIN_2:
-            case MOUNTAIN_3:
-            case MOUNTAIN_4:
-                return Tile.Vegetation.MOUNTAIN;
 
-            case SWAMP:
-                return Tile.Vegetation.SWAMP;
-
-            case WATER:
-            case BUILDABLE_WATER:
-            case WATER_2:
-                return Tile.Vegetation.WATER;
-
-            case DESERT_2:
-            case MEADOW_1:
-            case MEADOW_2:
-            case MEADOW_3:
-            case FLOWER_MEADOW:
-            case DESERT_1:
-            case STEPPE:
-            case SAVANNAH:
-            case SNOW:
-            case MOUNTAIN_MEADOW:
-            case BUILDABLE_MOUNTAIN_2:
-                return Tile.Vegetation.GRASS;
-
-            case LAVA:
-            case MAGENTA:
-            case LAVA_2:
-            case LAVA_3:
-            case LAVA_4:
+        switch (textureBelow.getValue()) {
+            case 0x00: return Tile.Vegetation.SAVANNAH; // Savannah - can build houses
+            case 0x01: return Tile.Vegetation.MOUNTAIN; // Mountaing 1 - mining
+            case 0x02: return Tile.Vegetation.SNOW;     // Snow - can't walk on the snow
+            case 0x03: return Tile.Vegetation.SWAMP;    // Swamp - can't walk on swamp?
+            case 0x04: return Tile.Vegetation.DESERT;   // Desert 1 - flags
+            case 0x05: return Tile.Vegetation.DEEP_WATER;    // Water - no walking, sailing
+            case 0x06: return Tile.Vegetation.SHALLOW_WATER; // Buildable water - can build houses
+            case 0x07: return Tile.Vegetation.DESERT;   // Desert 2 - flags
+            case 0x08: return Tile.Vegetation.GRASS;    // Meadow 1 - can build houses
+            case 0x09: return Tile.Vegetation.GRASS;    // Meadow 2 - can build houses
+            case 0x0A: return Tile.Vegetation.GRASS;    // Meadow 3 - can build houses
+            case 0x0B: return Tile.Vegetation.MOUNTAIN; // Mountain 2 - mining
+            case 0x0C: return Tile.Vegetation.MOUNTAIN; // Mountain 3 - mining
+            case 0x0D: return Tile.Vegetation.MOUNTAIN; // Mountain 4 - mining
+            case 0x0E: return Tile.Vegetation.STEPPE;   // Steppe - can build houses
+            case 0x0F: return Tile.Vegetation.GRASS;    // Flower meadow - can build houses
+            case 0x10: return Tile.Vegetation.LAVA;     // Lava - no walking
+            case 0x11: return Tile.Vegetation.MAGENTA;  // MAGENTA - build flags
+            case 0x12: return Tile.Vegetation.MOUNTAIN_MEADOW; // Mountain meadow - can build houses
+            case 0x13: return Tile.Vegetation.WATER;    // Water - no walking, no building, no sailing
+            case 0x14: return Tile.Vegetation.LAVA;     // Lava 2 - no walking, building
+            case 0x15: return Tile.Vegetation.LAVA;     // Lava 3 - no walking, building
+            case 0x16: return Tile.Vegetation.LAVA;     // Lava 4 - no walking, building
+            case 0x22: return Tile.Vegetation.BUILDABLE_MOUNTAIN; // Buildable mountain can build houses, walking, no mining
             default:
-                return Tile.Vegetation.MOUNTAIN;
-
+                System.out.println("Can't handle texture " + textureBelow);
+                System.exit(1);
+            return null;
         }
     }
 
@@ -97,5 +94,30 @@ public class Utils {
             default:
                 return null;
         }
+    }
+
+    static String readString(FileInputStream fis, int length) throws IOException {
+        byte[] array = new byte[length];
+
+        fis.read(array, 0, length);
+
+        return new String(array);
+    }
+
+    static short readUnsignedByte(FileInputStream fis) throws IOException {
+
+        byte[] bytes = new byte[2];
+
+        fis.read(bytes, 0, 1);
+
+        return Utils.getUnsignedByteInArray(bytes, 0);
+    }
+
+    public static int readUnsignedShort(FileInputStream fis) throws IOException {
+        byte[] bytes = new byte[2];
+
+        fis.read(bytes, 0,2);
+
+        return getUnsignedShortInArray(bytes, 0);
     }
 }
