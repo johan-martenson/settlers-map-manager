@@ -15,23 +15,41 @@ import java.util.List;
  */
 public class MapFile {
 
-    int width = -1;
-    int height = -1;
-    int actualWidth = -1;
-    int actualHeight = -1;
+    /* Map properties */
+    private final List<Point> startingPositions;
+    private final List<PlayerFace> playerFaces;
+    private final List<UniqueMass> masses;
+    private final List<SpotData> spotList;
+
+    int         width;
+    int         height;
+    int         actualWidth;
+    int         actualHeight;
+    int         maxNumberOfPlayers;
     TerrainType terrainType;
-    int maxNumberOfPlayers = -1;
-    String author;
-    List<Point> startingPositions = new ArrayList<>();
-    boolean unlimitedPlay;
-    List<PlayerFace> playerFaces = new ArrayList<>();
-    List<UniqueMass> masses = new ArrayList<>();
-    int fileId;
-    List<SpotData> spotList = new ArrayList<>();    
-    private String title;
+    String      author;
+    boolean     unlimitedPlay;
+    int         fileId;
+    private     String title;
+
+    public MapFile() {
+        width              = -1;
+        height             = -1;
+        actualWidth        = -1;
+        actualHeight       = -1;
+        maxNumberOfPlayers = -1;
+        startingPositions  = new ArrayList<>();
+        playerFaces        = new ArrayList<>();
+        masses             = new ArrayList<>();
+        spotList           = new ArrayList<>();
+    }
 
     void setTitle(String title) {
         this.title = title;
+    }
+
+    String getTitle() {
+        return title;
     }
 
     void setTerrainType(TerrainType terrainType) {
@@ -59,7 +77,9 @@ public class MapFile {
     }
 
     void setPlayerFaces(List<PlayerFace> playerFaces) {
-        this.playerFaces = playerFaces;
+        this.playerFaces.clear();
+
+        this.playerFaces.addAll(playerFaces);
     }
 
     void setWidth(int width) {
@@ -92,5 +112,29 @@ public class MapFile {
 
     List<java.awt.Point> getStartingPoints() {
         return startingPositions;
+    }
+
+    int getMaxNumberOfPlayers() {
+        return maxNumberOfPlayers;
+    }
+
+    TerrainType getTerrainType() {
+        return terrainType;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public boolean isPlayUnlimited() {
+        return unlimitedPlay;
+    }
+
+    public List<PlayerFace> getPlayerFaces() {
+        return playerFaces;
+    }
+
+    public SpotData getSpot(int i) {
+        return spotList.get(i);
     }
 }
