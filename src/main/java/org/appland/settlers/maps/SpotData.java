@@ -5,6 +5,8 @@
  */
 package org.appland.settlers.maps;
 
+import org.appland.settlers.model.Size;
+
 /**
  *
  * @author johan
@@ -64,15 +66,29 @@ class SpotData {
                (resource.type == ResourceType.COAL     ||
                 resource.type == ResourceType.GOLD     ||
                 resource.type == ResourceType.IRON_ORE ||
-                resource.type == ResourceType.GRANITE);
+                resource.type == ResourceType.GRANITE) &&
+                resource.amount > 0;
     }
 
     ResourceType getMineralType() {
         return resource.type;
     }
 
-    int getMineralQuantity() {
-        return resource.amount;
+    Size getMineralQuantity() {
+
+        /* Amount goes from 0 to 7. 0 means there is no more minerals
+        *
+        * Map 1-2 to SMALL, 3-4 to MEDIUM, 5-7 to LARGE
+        *
+        * */
+
+        if (resource.amount > 4) {
+            return Size.LARGE;
+        } else if (resource.amount > 2) {
+            return Size.MEDIUM;
+        } else {
+            return Size.SMALL;
+        }
     }
 
     boolean hasStone() {
@@ -92,5 +108,9 @@ class SpotData {
         } else {
             return false;
         }
+    }
+
+    public boolean hasWildAnimal() {
+        return animal != null;
     }
 }
