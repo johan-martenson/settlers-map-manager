@@ -19,17 +19,27 @@ public enum Animal {
     SHEEP(6),
     DEER_2(7),
     DUCK_2(8),
-    PACK_DONKEY(9)
-    ;
+    PACK_DONKEY(9);
 
-    private int id;
+    private final int id;
 
-    private Animal(int id) {
+    Animal(int id) {
         this.id = id;
     }
 
     public int getValue() {
         return id;
+    }
+
+    public boolean isWildAnimal() {
+        return id == RABBIT.getValue() ||
+               id == FOX.getValue()    ||
+               id == STAG.getValue()   ||
+               id == DEER.getValue()   ||
+               id == DUCK.getValue()   ||
+               id == SHEEP.getValue()  ||
+               id == DEER_2.getValue() ||
+               id == DUCK_2.getValue();
     }
 
     static Animal animalFromInt(short i) {
