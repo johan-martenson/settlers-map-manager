@@ -16,7 +16,7 @@ public enum MassType {
 
     private final int id;
 
-    private MassType(int id) {
+    MassType(int id) {
         this.id = id;
     }
 
