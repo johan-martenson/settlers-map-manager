@@ -16,7 +16,7 @@ public enum TerrainType {
 
     private final int id;
 
-    private TerrainType(int id) {
+    TerrainType(int id) {
         this.id = id;
     }
 
