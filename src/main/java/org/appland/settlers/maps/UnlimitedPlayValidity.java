@@ -15,7 +15,7 @@ public enum UnlimitedPlayValidity {
 
     private final int id;
 
-    private UnlimitedPlayValidity(int id) {
+    UnlimitedPlayValidity(int id) {
         if (id == 0) {
             this.id = id;
         } else {
