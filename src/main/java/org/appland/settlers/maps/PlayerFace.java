@@ -23,10 +23,9 @@ public enum PlayerFace {
     NUBIAN_TODO(10),
     NUBIAN_MNGA_TSCHA(11);
 
-
     private final int id;
 
-    private PlayerFace(int id) {
+    PlayerFace(int id) {
         this.id = id;
     }
 
