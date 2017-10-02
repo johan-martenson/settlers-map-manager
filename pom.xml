@@ -24,6 +24,30 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-assembly-plugin</artifactId>
+	<configuration>
+	  <finalName>settlers-maps</finalName>
+	  <descriptorRefs>
+	    <descriptorRef>jar-with-dependencies</descriptorRef>
+	  </descriptorRefs>
+	  <archive>
+	    <manifest>
+	      <mainClass>org.appland.settlers.maps.MapLoader</mainClass>
+	    </manifest>
+	  </archive>
+	</configuration>
+	<executions>
+	  <execution>
+	    <goals>
+	      <goal>attached</goal>
+	    </goals>
+	    <phase>package</phase>
+	  </execution>
+	</executions>
+      </plugin>
+
     </plugins>
   </build>
 
