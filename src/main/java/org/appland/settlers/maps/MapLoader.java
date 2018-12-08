@@ -135,7 +135,7 @@ public class MapLoader {
                 System.out.print("(" + point.x + ", " + point.y + ") ");
             }
 
-            System.out.println("");
+            System.out.println();
 
             /* Determine if the map is intended for unlimited play */
             if (Utils.readUnsignedByte(fis) == 0) {
@@ -238,12 +238,12 @@ public class MapLoader {
             fis.read(firstBlockHeader, 0, 16);
 
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.println("Height block fileHeader");
             }
 
             /* Verify that the coming six bytes are: 0x 10 27 00 00 00 00 */
-            byte[] MANDATORY = new byte[] {0x10, 0x27, 00, 00, 00, 00};
+            byte[] MANDATORY = new byte[] {0x10, 0x27, 0, 0, 0, 0};
             if (!Utils.byteArraysMatch(firstBlockHeader, MANDATORY, 6)) {
                 System.out.println("Mandatory bytes don't match.");
                 System.out.println(Utils.getHex(firstBlockHeader));
@@ -303,7 +303,7 @@ public class MapLoader {
 
             /* Read the second sub block with textures for up-pointing triangles */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Texture block 1: ");
             }
 
@@ -326,7 +326,7 @@ public class MapLoader {
 
             /* Read the third sub block fileHeader with textures for down-pointing triangles */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Texture block 2: ");
             }
 
@@ -350,7 +350,7 @@ public class MapLoader {
 
             /* Read the fourth sub block fileHeader with roads */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Road block: ");
             }
 
@@ -371,7 +371,7 @@ public class MapLoader {
 
             /* Read the fifth sub block fileHeader with object properties */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Object property block: ");
             }
 
@@ -394,7 +394,7 @@ public class MapLoader {
 
             /*  Read sixth sub block header with object types */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Object type block: ");
             }
 
@@ -417,7 +417,7 @@ public class MapLoader {
 
             /* Read seventh sub block header with animals */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.println("Animals block: ");
             }
 
@@ -451,11 +451,11 @@ public class MapLoader {
                 }
             }
 
-            System.out.println("");
+            System.out.println();
 
             /* Skip eighth block with unknown data */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Unknown block: ");
             }
 
@@ -474,7 +474,7 @@ public class MapLoader {
 
             /* Read ninth block with buildable sites */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Buildable sites block: ");
             }
 
@@ -498,7 +498,7 @@ public class MapLoader {
 
             /* Skip tenth block with unknown data */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Second unknown block: ");
             }
 
@@ -517,7 +517,7 @@ public class MapLoader {
 
             /* Skip eleventh block with map editor cursor position */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Map editor cursor position: ");
             }
 
@@ -536,7 +536,7 @@ public class MapLoader {
 
             /* Read the 12th block with resources */
             if (debug) {
-                System.out.println("");
+                System.out.println();
                 System.out.print("Resource block: ");
             }
 
