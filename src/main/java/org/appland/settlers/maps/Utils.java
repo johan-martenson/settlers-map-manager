@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
  *
  * @author johan
  */
-public class Utils {
+class Utils {
 
     public static short getUnsignedByteInArray (byte[] arr, int i) {
         ByteBuffer bb = ByteBuffer.wrap(arr);
@@ -51,7 +51,7 @@ public class Utils {
 
         switch (textureBelow.getValue()) {
             case 0x00: return Tile.Vegetation.SAVANNAH; // Savannah - can build houses
-            case 0x01: return Tile.Vegetation.MOUNTAIN; // Mountaing 1 - mining
+            case 0x01: return Tile.Vegetation.MOUNTAIN; // Mountain 1 - mining
             case 0x02: return Tile.Vegetation.SNOW;     // Snow - can't walk on the snow
             case 0x03: return Tile.Vegetation.SWAMP;    // Swamp - can't walk on swamp?
             case 0x04: return Tile.Vegetation.DESERT;   // Desert 1 - flags
