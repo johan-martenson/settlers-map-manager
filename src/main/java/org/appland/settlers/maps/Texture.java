@@ -99,4 +99,8 @@ public enum Texture {
                 return null;
         }
     }
+
+    public static boolean isWater(Texture texture) {
+        return texture == WATER || texture == WATER_2 || texture == BUILDABLE_WATER;
+    }
 }
