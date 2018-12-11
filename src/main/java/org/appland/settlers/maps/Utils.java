@@ -10,7 +10,9 @@ import org.appland.settlers.model.Tile;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  *
@@ -23,18 +25,33 @@ class Utils {
         return ((short)(bb.get(i) & 0xff));
     }
 
-    public static int getUnsignedShortInArray (byte[] arr, int i) {
-        ByteBuffer bb = ByteBuffer.wrap(arr);
-        return (bb.getShort(i) & 0xffff);
+    public static char getNextUnsignedShort(InputStream is) throws IOException {
+        byte[] bytes = new byte[2];
+
+        is.read(bytes);
+
+        return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getChar();
+    }
+
+    public static char getUnsignedShortInArray (byte[] arr, int i) {
+        ByteBuffer bb = ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
+
+        return bb.getChar(i);
     }
 
     public static long getUnsignedIntInArray (byte[] arr, int i) {
-        ByteBuffer bb = ByteBuffer.wrap(arr);
+        ByteBuffer bb = ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
         return ((long)bb.getInt(i) & 0xffffffff);
     }
 
     static String getHex(byte[] blockHeader1) {
-        return javax.xml.bind.DatatypeConverter.printHexBinary(blockHeader1);
+        StringBuffer hex = new StringBuffer();
+
+        for (byte b : blockHeader1) {
+            hex.append(Integer.toHexString((int)(b & 0xff)));
+        }
+
+        return hex.toString();
     }
 
     static boolean byteArraysMatch(byte[] blockHeader1, byte[] blockHeader2, int len) {
@@ -101,7 +118,17 @@ class Utils {
 
         fis.read(array, 0, length);
 
-        return new String(array);
+        int indexOfZero = length;
+
+        for (int i = 0; i < length; i++) {
+            if (array[i] == 0) {
+                indexOfZero = i;
+
+                break;
+            }
+        }
+
+        return new String(array, 0, indexOfZero);
     }
 
     static short readUnsignedByte(FileInputStream fis) throws IOException {
@@ -111,13 +138,5 @@ class Utils {
         fis.read(bytes, 0, 1);
 
         return Utils.getUnsignedByteInArray(bytes, 0);
-    }
-
-    public static int readUnsignedShort(FileInputStream fis) throws IOException {
-        byte[] bytes = new byte[2];
-
-        fis.read(bytes, 0,2);
-
-        return getUnsignedShortInArray(bytes, 0);
     }
 }

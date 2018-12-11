@@ -14,6 +14,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -30,6 +32,9 @@ public class MapLoader {
 
     @Option(name="--debug", usage="Print debug information")
     boolean debug = false;
+
+    @Option(name="--mode", usage="Set swd or wld file format explicitly")
+    String mode = "swd";
 
     public static void main(String[] args) {
 
@@ -55,11 +60,17 @@ public class MapLoader {
         byte[] fileHeader       = new byte[10];
         byte[] firstBlockHeader = new byte[16];
         byte[] newBlockHeader   = new byte[16];
-        byte[] reusedArray      = new byte[36864];
+        byte[] reusedArray      = new byte[65536];
 
         MapFile mapFile = new MapFile();
 
-        System.out.println("Loading " + mapFilename);
+        System.out.print("Loading " + mapFilename);
+
+        if (isWldMode()) {
+            System.out.println(" in WLD mode");
+        } else {
+            System.out.println(" in SWD mode");
+        }
 
         try {
             FileInputStream fis = new FileInputStream(new File(mapFilename));
@@ -67,21 +78,31 @@ public class MapLoader {
             /* Read file header */
             fis.read(fileHeader);
 
+            if (debug) {
+                System.out.println(" -- File header: " + Utils.getHex(fileHeader));
+            }
+
             /* Read title */
-            mapFile.setTitle(Utils.readString(fis, 19));
-            System.out.println(" -- Title: " + mapFile.getTitle());
+            String title = "";
+
+            if (isWldMode()) {
+                title = Utils.readString(fis, 23);
+            } else {
+                title = Utils.readString(fis, 19);
+            }
+
+            mapFile.setTitle(title);
+            System.out.println(" -- Title: " + title);
 
             /* Skip null terminator for title */
             fis.skip(1);
 
-            /* Read width and height */
-            mapFile.setWidth(Utils.readUnsignedByte(fis));
+            /* Read width and height for SWD maps*/
+            if (!isWldMode()) {
+                mapFile.setWidth(Utils.getNextUnsignedShort(fis));
 
-            fis.skip(1);
-
-            mapFile.setHeight(Utils.readUnsignedByte(fis));
-
-            fis.skip(1);
+                mapFile.setHeight(Utils.getNextUnsignedShort(fis));
+            }
 
             System.out.println(" -- Dimensions: " + mapFile.getWidth() + " x " + mapFile.getHeight());
 
@@ -107,7 +128,7 @@ public class MapLoader {
             List<Point> tmpStartingPositions = new ArrayList<>();
 
             for (int i = 0; i < 7; i++) {
-                int x = Utils.readUnsignedByte(fis);
+                int x = Utils.readUnsignedByte(fis); //WRONG?
 
                 fis.skip(1);
 
@@ -194,11 +215,12 @@ public class MapLoader {
             }
 
             /* Read map file identification */
-            int fileId = Utils.readUnsignedShort(fis);
+            byte[] fileIdBytes = new byte[2];
+            fis.read(fileIdBytes);
 
             /* Verify file id */
-            if (fileId != 0x1127) {
-                System.out.println("Invalid file id " + fileId + " (must be 0x1127). Exiting.");
+            if (fileIdBytes[0] != 0x11 || fileIdBytes[1] != 0x27) {
+                System.out.println("Invalid file id " + Utils.getHex(fileIdBytes) + " (must be 0x1127). Exiting.");
                 System.exit(1);
             }
 
@@ -208,31 +230,49 @@ public class MapLoader {
             if (reusedArray[0] != 0 || reusedArray[1] != 0 ||
                 reusedArray[2] != 0 || reusedArray[3] != 0) {
                 System.out.println("Not zeros although mandatory. Are instead " +
-                                    reusedArray[0] + " " + 
-                        reusedArray[0] + " " + 
-                        reusedArray[0] + " " + 
+                                    reusedArray[0] + " " +
+                        reusedArray[0] + " " +
+                        reusedArray[0] + " " +
                         reusedArray[0] + " ");
                 System.exit(1);
             }
 
             /* Extra 01 00 bytes may appear here but no files seen so far have this */
+            byte[] maybe = new byte[2];
+
+            fis.read(maybe);
+
+            if (debug) {
+                System.out.println("Potential filler: " + Utils.getHex(maybe));
+            }
+
+            if (maybe[0] == 1 && maybe[1] == 0) {
+                if (debug) {
+                    System.out.println("Saw 01 00 filler. Skipping two bytes");
+                }
+
+                fis.read(maybe);
+            }
 
             /* Read actual width and height, as used by map loaders */
-            int newWidth = Utils.readUnsignedByte(fis);
+            int newWidth = ByteBuffer.wrap(maybe).order(ByteOrder.LITTLE_ENDIAN).getChar();
 
-            fis.skip(1);
+            fis.read(maybe);
+            int newHeight = ByteBuffer.wrap(maybe).order(ByteOrder.LITTLE_ENDIAN).getChar();
 
-            int newHeight = Utils.readUnsignedByte(fis);
-
-            fis.skip(1);
+            if (debug) {
+                System.out.println("Old width: " + mapFile.getWidth() + ", new width: " + newWidth);
+                System.out.println("Old height: " + mapFile.getHeight() + ", new height: " + newHeight);
+            }
 
             if (newWidth != mapFile.getWidth() || newHeight != mapFile.getHeight()) {
-                System.out.println("Dimensions don't match. Were "
+                System.out.println("Warning: Dimensions don't match. Were "
                         + mapFile.getWidth() + " x " + mapFile.getHeight() + "but now saw "
                         + newWidth + " x " + newHeight);
-
-                System.exit(1);
             }
+
+            mapFile.setWidth(newWidth);
+            mapFile.setHeight(newHeight);
 
             /* Read first sub block fileHeader with data about heights */
             fis.read(firstBlockHeader, 0, 16);
@@ -259,12 +299,12 @@ public class MapLoader {
             }
 
             /* Verify that the dimensions remain */
-            if (mapFile.getWidth()  != Utils.getUnsignedByteInArray(firstBlockHeader, 6 + extraOffset) ||
-                mapFile.getHeight() != Utils.getUnsignedByteInArray(firstBlockHeader, 8 + extraOffset)) {
+            if (mapFile.getWidth()  != Utils.getUnsignedShortInArray(firstBlockHeader, 6 + extraOffset) ||
+                mapFile.getHeight() != Utils.getUnsignedShortInArray(firstBlockHeader, 8 + extraOffset)) {
                 System.out.println("Mismatch in dimensions. Was "
                                    + mapFile.getWidth() + " x " + mapFile.getHeight() + " but saw "
-                                   + Utils.getUnsignedByteInArray(firstBlockHeader, 6 + extraOffset) + " x "
-                                   + Utils.getUnsignedByteInArray(firstBlockHeader, 8 + extraOffset));
+                                   + Utils.getUnsignedShortInArray(firstBlockHeader, 6 + extraOffset) + " x "
+                                   + Utils.getUnsignedShortInArray(firstBlockHeader, 8 + extraOffset));
                 System.exit(1);
             }
 
@@ -279,14 +319,18 @@ public class MapLoader {
                 extraOffset += 2;
             }
 
-            int subBlockSize = Utils.getUnsignedShortInArray(firstBlockHeader, 11 + extraOffset);
+            if (debug) {
+                System.out.println("Extra offset " + extraOffset);
+            }
+
+            long subBlockSize = Utils.getUnsignedIntInArray(firstBlockHeader, 10 + extraOffset);
 
             if (debug) {
-                System.out.println(" -- Data size: " + subBlockSize);
+                System.out.println(" -- Data size: " + (int)subBlockSize);
             }
 
             /* Read height map */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
             for (int i = 0; i < subBlockSize; i++) {
                 int heightAtPoint = Utils.getUnsignedByteInArray(reusedArray, i);
 
@@ -317,7 +361,7 @@ public class MapLoader {
                 System.exit(1);
             }
 
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
             for (int i = 0; i < subBlockSize; i++) {
                 Texture tex = Texture.textureFromInt(Utils.getUnsignedByteInArray(reusedArray, i));
 
@@ -341,7 +385,7 @@ public class MapLoader {
             }
 
             /* Read textures */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
             for (int i = 0; i < subBlockSize; i++) {
                 Texture tex = Texture.textureFromInt(Utils.getUnsignedByteInArray(reusedArray, i));
 
@@ -365,7 +409,7 @@ public class MapLoader {
             }
 
             /* Read roads */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
 
             // Ignore roads for now
 
@@ -386,7 +430,7 @@ public class MapLoader {
             }
 
             /* Object properties */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
 
             for (int i = 0; i < subBlockSize; i++) {
                 mapFile.getSpot(i).setObjectProperties(Utils.getUnsignedByteInArray(reusedArray, i));
@@ -409,7 +453,7 @@ public class MapLoader {
             }
 
             /* Read object types*/
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
 
             for (int i = 0; i < subBlockSize; i++) {
                 mapFile.getSpot(i).setObjectType(Utils.getUnsignedByteInArray(reusedArray, i));
@@ -432,7 +476,7 @@ public class MapLoader {
             }
 
             /* Read animals */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
 
             if (debug) {
                 System.out.print(" -- Wild animals: ");
@@ -489,7 +533,7 @@ public class MapLoader {
             }
 
             /* Read the buildable sites */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
             for (int i = 0; i < subBlockSize; i++) {
                 BuildableSite site = BuildableSite.buildableSiteFromInt(Utils.getUnsignedByteInArray(reusedArray, i));
 
@@ -551,7 +595,7 @@ public class MapLoader {
             }
 
             /* Read the resources block */
-            fis.read(reusedArray, 0, subBlockSize);
+            fis.read(reusedArray, 0, (int)subBlockSize);
 
             for (int i = 0; i < subBlockSize; i++) {
                 Resource resource = Resource.resourceFromInt(Utils.getUnsignedByteInArray(reusedArray, i));
@@ -575,6 +619,10 @@ public class MapLoader {
         return mapFile;
     }
 
+    private boolean isWldMode() {
+        return mode.equals("wld");
+    }
+
     public GameMap convertMapFileToGameMap(MapFile mapFile) throws Exception {
 
         /* Generate list of players */
@@ -596,7 +644,7 @@ public class MapLoader {
 
             /* Set triangles above, instead of below because the iteration starts
                from the bottom and runs upwards
-            
+
                This will look good but the maps are rendered upside down
             */
             org.appland.settlers.model.Point p0 = new org.appland.settlers.model.Point(index - 1, row + 1);
