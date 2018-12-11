@@ -33,7 +33,7 @@ public enum PlayerFace {
         return id;
     }
 
-    protected static PlayerFace playerFaceFromShort(short s) {
+    static PlayerFace playerFaceFromShort(short s) {
         switch(s) {
             case 0:
                 return PlayerFace.ROMAN_OCTAVIANUS;
