@@ -64,11 +64,13 @@ public class MapLoader {
 
         MapFile mapFile = new MapFile();
 
-        System.out.print("Loading " + mapFilename);
+        if (debug) {
+            System.out.print("Loading " + mapFilename);
+        }
 
-        if (isWldMode()) {
+        if (isWldMode() && debug) {
             System.out.println(" in WLD mode");
-        } else {
+        } else if (debug) {
             System.out.println(" in SWD mode");
         }
 
@@ -92,7 +94,10 @@ public class MapLoader {
             }
 
             mapFile.setTitle(title);
-            System.out.println(" -- Title: " + title);
+
+            if (debug) {
+                System.out.println(" -- Title: " + title);
+            }
 
             /* Skip null terminator for title */
             fis.skip(1);
@@ -104,22 +109,30 @@ public class MapLoader {
                 mapFile.setHeight(Utils.getNextUnsignedShort(fis));
             }
 
-            System.out.println(" -- Dimensions: " + mapFile.getWidth() + " x " + mapFile.getHeight());
+            if (debug) {
+                System.out.println(" -- Dimensions: " + mapFile.getWidth() + " x " + mapFile.getHeight());
+            }
 
             /* Read the terrain type */
             mapFile.setTerrainType(TerrainType.fromShort(Utils.readUnsignedByte(fis)));
 
-            System.out.println(" -- Terrain type: " + mapFile.getTerrainType());
+            if (debug) {
+                System.out.println(" -- Terrain type: " + mapFile.getTerrainType());
+            }
 
             /* Read number of players */
             mapFile.setMaxNumberOfPlayers(Utils.readUnsignedByte(fis));
 
-            System.out.println(" -- Number of players: " + mapFile.getMaxNumberOfPlayers());
+            if (debug) {
+                System.out.println(" -- Number of players: " + mapFile.getMaxNumberOfPlayers());
+            }
 
             /* Read the author */
             mapFile.setAuthor(Utils.readString(fis, 19));
 
-            System.out.println(" -- Author: " + mapFile.getAuthor());
+            if (debug) {
+                System.out.println(" -- Author: " + mapFile.getAuthor());
+            }
 
             /* Skip null terminator for the author */
             fis.skip(1);
@@ -150,13 +163,19 @@ public class MapLoader {
                 }
             }
 
-            System.out.print(" -- Starting positions: ");
-
-            for (Point point : mapFile.getStartingPoints()) {
-                System.out.print("(" + point.x + ", " + point.y + ") ");
+            if (debug) {
+                System.out.print(" -- Starting positions: ");
             }
 
-            System.out.println();
+            if (debug) {
+                for (Point point : mapFile.getStartingPoints()) {
+                    System.out.print("(" + point.x + ", " + point.y + ") ");
+                }
+            }
+
+            if (debug) {
+                System.out.println();
+            }
 
             /* Determine if the map is intended for unlimited play */
             if (Utils.readUnsignedByte(fis) == 0) {
@@ -165,7 +184,9 @@ public class MapLoader {
                 mapFile.disableUnlimitedPlay();
             }
 
-            System.out.println(" -- Unlimited play: " + mapFile.isPlayUnlimited());
+            if (debug) {
+                System.out.println(" -- Unlimited play: " + mapFile.isPlayUnlimited());
+            }
 
             /* Read player face */
             List<PlayerFace> playerFaces = new ArrayList<>();
@@ -183,7 +204,9 @@ public class MapLoader {
             mapFile.setPlayerFaces(playerFaces);
 
             for (PlayerFace face : mapFile.getPlayerFaces()) {
-                System.out.println(" -- Player: " + face.name());
+                if (debug) {
+                    System.out.println(" -- Player: " + face.name());
+                }
             }
 
             /* Read starting points for each unique water and land mass */
