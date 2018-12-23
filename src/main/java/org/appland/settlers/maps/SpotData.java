@@ -5,6 +5,7 @@
  */
 package org.appland.settlers.maps;
 
+import org.appland.settlers.model.Point;
 import org.appland.settlers.model.Size;
 
 /**
@@ -21,6 +22,7 @@ class SpotData {
     private Animal animal;
     private BuildableSite buildableSite;
     private Resource resource;
+    private Point position;
 
     void setHeight(int heightAtPoint) {
         height = heightAtPoint;
@@ -112,5 +114,17 @@ class SpotData {
 
     public boolean hasWildAnimal() {
         return animal != null;
+    }
+
+    public void setPosition(int index, int row) {
+        position = new Point(index, row);
+    }
+
+    public Point getPosition() {
+        return position;
+    }
+
+    public BuildableSite getBuildableSite() {
+        return buildableSite;
     }
 }
