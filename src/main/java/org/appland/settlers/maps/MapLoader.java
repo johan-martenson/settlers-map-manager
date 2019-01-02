@@ -748,7 +748,7 @@ public class MapLoader {
         }
 
         /* Create initial game map with correct dimensions */
-        GameMap gameMap = new GameMap(players, mapFile.getWidth() * 2 + 1, mapFile.getHeight() + 3);
+        GameMap gameMap = new GameMap(players, mapFile.getWidth() * 2 + 2, mapFile.getHeight() + 3);
 
         /* Set up the terrain */
         Terrain terrain = gameMap.getTerrain();
@@ -770,18 +770,21 @@ public class MapLoader {
 
             /* Place stones */
             if (spot.hasStone()) {
-                gameMap.placeStone(spot.getPosition());
+                gameMap.placeStone(point);
             }
 
             /* Place trees */
             if (spot.hasTree()) {
-                gameMap.placeTree(spot.getPosition());
+                gameMap.placeTree(point);
             }
 
             /* Place wild animals */
             if (spot.hasWildAnimal()) {
-                gameMap.placeWildAnimal(spot.getPosition());
+                gameMap.placeWildAnimal(point);
             }
+
+            /* Set the height */
+            gameMap.setHeightAtPoint(point, spot.getHeight());
         }
 
         /* Set starting points */
