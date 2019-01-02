@@ -180,9 +180,9 @@ public class MapFile {
      */
     void assignPositionsToSpots() {
 
-        int y = height;
+        int y = height + 1;
         int yInFile = 0;
-        int x = 0;
+        int x = 1;
 
         int xInFile = 1;
         boolean nextIsInset = true;
@@ -197,20 +197,20 @@ public class MapFile {
             if (xInFile == width) {
 
                 if (nextIsInset) {
-                    x = 1;
+                    x = 2;
                 } else {
-                    x = 0;
+                    x = 1;
                 }
 
                 y--;
                 yInFile++;
 
                 nextIsInset = !nextIsInset;
-                xInFile = 0;
+                xInFile = 1;
+            } else {
+                x += 2;
+                xInFile++;
             }
-
-            x += 2;
-            xInFile++;
         }
     }
 
