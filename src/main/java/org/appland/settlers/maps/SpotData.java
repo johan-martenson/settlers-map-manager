@@ -120,11 +120,15 @@ class SpotData {
         position = new Point(index, row);
     }
 
-    public Point getPosition() {
+    public org.appland.settlers.model.Point getPosition() {
         return position;
     }
 
     public BuildableSite getBuildableSite() {
         return buildableSite;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }
