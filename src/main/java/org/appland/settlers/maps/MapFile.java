@@ -5,9 +5,12 @@
  */
 package org.appland.settlers.maps;
 
-import java.awt.Point;
+import org.appland.settlers.model.Point;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -30,7 +33,11 @@ public class MapFile {
     String      author;
     boolean     unlimitedPlay;
     int         fileId;
+
     private     String title;
+    private     Map<Point, SpotData> pointToSpots;
+    private     Map<java.awt.Point, SpotData> filePointToSpots;
+    private     List<java.awt.Point> fileStartingPoints;
 
     public MapFile() {
         width              = -1;
@@ -42,6 +49,7 @@ public class MapFile {
         playerFaces        = new ArrayList<>();
         masses             = new ArrayList<>();
         spotList           = new ArrayList<>();
+        fileStartingPoints = new ArrayList<>();
     }
 
     void setTitle(String title) {
@@ -64,8 +72,8 @@ public class MapFile {
         this.author = author;
     }
 
-    void addStartingPosition(Point startingPoint) {
-        startingPositions.add(startingPoint);
+    void addStartingPosition(java.awt.Point startingPoint) {
+        fileStartingPoints.add(startingPoint);
     }
 
     void enableUnlimitedPlay() {
@@ -102,7 +110,7 @@ public class MapFile {
         spotList.add(spot);
     }
 
-    void addMassStartingPoint(Point position) {
+    void addMassStartingPoint(java.awt.Point position) {
         // Ignore for now
     }
 
@@ -110,7 +118,7 @@ public class MapFile {
         return spotList;
     }
 
-    List<java.awt.Point> getStartingPoints() {
+    List<Point> getStartingPoints() {
         return startingPositions;
     }
 
@@ -136,5 +144,94 @@ public class MapFile {
 
     public SpotData getSpot(int i) {
         return spotList.get(i);
+    }
+
+    /**
+     * Assign positions to the spots
+     *
+     * The spots in the map file are saved according to the pattern:
+     *
+     *   00  01  02  03
+     * 04  05  06  07
+     *   08  09  0A  0B
+     * 0C  0D  0E  0F
+     *
+     * While points in the game are structured as:
+     *
+     *
+     * 0,2       2, 2
+     *      1,1       3,1
+     * 0,0       2,0
+     *
+     * The starting points read from the file start with y as 0 on the top row and then increases downwards. X is the
+     * number of data points in the file on the current row. This means that y is increasing while the in-game y is
+     * ascending and x is half the in-game x.
+     *
+     * Unknown: does y and x start at 0 or 1?
+     *
+     * Starting point in file: 3, 4
+     *
+     *   00  01  02  03
+     * 04  05  06  07
+     *   08  09  0A  **   <----- Starting point
+     * 0C  0D  0E  0F
+     *
+     *
+     */
+    void assignPositionsToSpots() {
+
+        int y = height;
+        int yInFile = 0;
+        int x = 0;
+
+        int xInFile = 1;
+        boolean nextIsInset = true;
+
+        filePointToSpots = new HashMap<>();
+
+        for (SpotData spot : spotList) {
+
+            spot.setPosition(x, y);
+            filePointToSpots.put(new java.awt.Point(xInFile, yInFile), spot);
+
+            if (xInFile == width) {
+
+                if (nextIsInset) {
+                    x = 1;
+                } else {
+                    x = 0;
+                }
+
+                y--;
+                yInFile++;
+
+                nextIsInset = !nextIsInset;
+                xInFile = 0;
+            }
+
+            x += 2;
+            xInFile++;
+        }
+    }
+
+    void translateFileStartingPointsToGamePoints() {
+        for (java.awt.Point point : fileStartingPoints) {
+            startingPositions.add(new org.appland.settlers.model.Point(
+                    filePointToSpots.get(point).getPosition()
+            ));
+        }
+    }
+
+    public void adjustPointsToGameCoordinates() {
+
+        pointToSpots = new HashMap<>();
+
+        for (SpotData spot : spotList) {
+            pointToSpots.put(new org.appland.settlers.model.Point(spot.getPosition()), spot);
+        }
+    }
+
+    public SpotData getSpotAtPoint(Point point) {
+        return pointToSpots.get(point);
     }
 }
