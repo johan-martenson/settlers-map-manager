@@ -47,6 +47,12 @@ public class Inspector {
     @Option(name="--filter-unreliable-comparisons", usage="When selected points that are close to the border or the headquarter are hidden")
     private boolean filterUnreliableComparisons = false;
 
+    @Option(name="--render-map-file", usage="Renders an ascii representation of the map file")
+    private boolean renderMapFile = false;
+
+    @Option(name="--dump-spots", usage="Prints a list of all the spots in the map file")
+    private boolean dumpSpots = false;
+
     /* Regular fields */
     private MapLoader mapLoader;
     private MapFile   mapFile;
@@ -67,7 +73,11 @@ public class Inspector {
         parser.parseArgument(args);
 
         inspector.loadMapFile(mapFilename);
-        inspector.printMapFile();
+
+        /* Print the map from the file */
+        if (inspector.isPrintMapFromFileChosen()) {
+            inspector.printMapFile();
+        }
 
         /* Compare the available buildings */
         if (inspector.isCompareAvailableBuildingsChosen()) {
@@ -83,6 +93,65 @@ public class Inspector {
         if (inspector.isPrintPointInformationChosen()) {
             inspector.printPointInformation(new Point(inspector.infoPoint));
         }
+
+        /* Dump spots */
+        if (inspector.isDumpSpotsChosen()) {
+            inspector.printSpotList();
+        }
+    }
+
+    private void printSpotList() {
+
+        System.out.println();
+        System.out.println("All spots in the map file");
+        for (SpotData spot : mapFile.getSpots()) {
+            Point point = spot.getPosition();
+
+            SpotData spotLeft = mapFile.getSpotAtPoint(point.left());
+            SpotData spotUpLeft = mapFile.getSpotAtPoint(point.upLeft());
+            SpotData spotDownLeft = mapFile.getSpotAtPoint(point.downLeft());
+            SpotData spotRight = mapFile.getSpotAtPoint(point.right());
+            SpotData spotUpRight = mapFile.getSpotAtPoint(point.upRight());
+            SpotData spotDownRight = mapFile.getSpotAtPoint(point.downRight());
+
+            System.out.print(" - " + point + " available: " + spot.getBuildableSite() +
+                    ", height: " + spot.getHeight() +
+                    ", height differences:");
+
+            if (spotLeft != null) {
+                System.out.print(" " + (spot.getHeight() - spotLeft.getHeight()));
+            }
+
+            if (spotUpLeft != null) {
+                System.out.print(" " + (spot.getHeight() - spotUpLeft.getHeight()));
+            }
+
+            if (spotDownLeft!= null) {
+                System.out.print(" " + (spot.getHeight() - spotDownLeft.getHeight()));
+            }
+
+            if (spotRight != null) {
+                System.out.print(" " + (spot.getHeight() - spotRight.getHeight()));
+            }
+
+            if (spotUpRight != null) {
+                System.out.print(" " + (spot.getHeight() - spotUpRight.getHeight()));
+            }
+
+            if (spotDownRight!= null) {
+                System.out.print(" " + (spot.getHeight() - spotDownRight.getHeight()));
+            }
+
+            System.out.println();
+        }
+    }
+
+    private boolean isDumpSpotsChosen() {
+        return dumpSpots;
+    }
+
+    private boolean isPrintMapFromFileChosen() {
+        return renderMapFile;
     }
 
     /**
