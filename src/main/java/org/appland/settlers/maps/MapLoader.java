@@ -138,7 +138,7 @@ public class MapLoader {
             fis.skip(1);
 
             /* Go through x coordinates for starting positions */
-            List<Point> tmpStartingPositions = new ArrayList<>();
+            List<java.awt.Point> tmpStartingPositions = new ArrayList<>();
 
             for (int i = 0; i < 7; i++) {
                 int x = Utils.readUnsignedByte(fis); //WRONG?
@@ -354,12 +354,12 @@ public class MapLoader {
 
             /* Read height map */
             fis.read(reusedArray, 0, (int)subBlockSize);
-            for (int i = 0; i < subBlockSize; i++) {
-                int heightAtPoint = Utils.getUnsignedByteInArray(reusedArray, i);
+            ByteBuffer heightsBuffer = ByteBuffer.wrap(reusedArray).order(ByteOrder.LITTLE_ENDIAN);
 
+            for (int i = 0; i < subBlockSize; i++) {
                 SpotData spot = new SpotData();
 
-                spot.setHeight(heightAtPoint);
+                spot.setHeight((short)(heightsBuffer.get() & 0xff));
 
                 mapFile.addSpot(spot);
             }
@@ -635,6 +635,11 @@ public class MapLoader {
             fis.skip(subBlockSize);
 
             /* Footer, always 0xFF */
+
+            /* Post process the map file */
+            mapFile.assignPositionsToSpots();
+            mapFile.adjustPointsToGameCoordinates();
+            mapFile.translateFileStartingPointsToGamePoints();
         } catch (IOException ex) {
             Logger.getLogger(MapLoader.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -646,7 +651,7 @@ public class MapLoader {
         return mode.equals("wld");
     }
 
-    public GameMap convertMapFileToGameMap(MapFile mapFile) throws Exception {
+    public GameMap convertMapFileToGameMapOld(MapFile mapFile) throws Exception {
 
         /* Generate list of players */
         List<Player> players = new ArrayList<>();
@@ -693,17 +698,17 @@ public class MapLoader {
 
             /* Place stones */
             if (spot.hasStone()) {
-                gameMap.placeStone(p1);
+                gameMap.placeStone(spot.getPosition());
             }
 
             /* Place trees */
             if (spot.hasTree()) {
-                gameMap.placeTree(p1);
+                gameMap.placeTree(spot.getPosition());
             }
 
             /* Place wild animals */
             if (spot.hasWildAnimal()) {
-                gameMap.placeWildAnimal(p1);
+                gameMap.placeWildAnimal(spot.getPosition());
             }
 
             if (index == gameMap.getWidth() - 2) {
@@ -729,6 +734,58 @@ public class MapLoader {
 
         gameMap.setStartingPoints(startingPoints);
 
+
+        return gameMap;
+    }
+
+    public GameMap convertMapFileToGameMap(MapFile mapFile) throws Exception {
+
+        /* Generate list of players */
+        List<Player> players = new ArrayList<>();
+
+        for (int i = 0; i < mapFile.maxNumberOfPlayers; i++) {
+            players.add(new Player("Player " + i, new Color(i*20, i*20, i*20)));
+        }
+
+        /* Create initial game map with correct dimensions */
+        GameMap gameMap = new GameMap(players, mapFile.getWidth() * 2 + 1, mapFile.getHeight() + 3);
+
+        /* Set up the terrain */
+        Terrain terrain = gameMap.getTerrain();
+
+        for (SpotData spot : mapFile.getSpots()) {
+
+            org.appland.settlers.model.Point point = spot.getPosition();
+
+            /* Assign textures */
+            terrain.getTileBelow(point).setVegetationType(Utils.convertTextureToVegetation(spot.getTextureBelow()));
+            terrain.getTileDownRight(point).setVegetationType(Utils.convertTextureToVegetation(spot.getTextureDownRight()));
+
+            /* Set mineral quantities */
+            if (spot.hasMineral()) {
+                Material mineral = Utils.resourceTypeToMaterial(spot.getMineralType());
+
+                terrain.getTileAbove(point).setAmountMineral(mineral, spot.getMineralQuantity());
+            }
+
+            /* Place stones */
+            if (spot.hasStone()) {
+                gameMap.placeStone(spot.getPosition());
+            }
+
+            /* Place trees */
+            if (spot.hasTree()) {
+                gameMap.placeTree(spot.getPosition());
+            }
+
+            /* Place wild animals */
+            if (spot.hasWildAnimal()) {
+                gameMap.placeWildAnimal(spot.getPosition());
+            }
+        }
+
+        /* Set starting points */
+        gameMap.setStartingPoints(mapFile.getStartingPoints());
 
         return gameMap;
     }
