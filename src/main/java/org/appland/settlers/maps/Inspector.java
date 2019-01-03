@@ -295,47 +295,64 @@ public class Inspector {
         }
 
         System.out.println(" - Surrounding terrain:");
-        System.out.println("   -- Above 1: "+ mapFile.getSpotAtPoint(infoPoint.upLeft().upRight()).getTextureBelow() +
-                           " " + mapFile.getSpotAtPoint(infoPoint.up()).getTextureBelow() +
-                           " " + mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getTextureDownRight());
-        System.out.println("   -- Above 2: " + mapFile.getSpotAtPoint(infoPoint.upLeft()).getTextureBelow() +
-                           " " + mapFile.getSpotAtPoint(infoPoint.upLeft()).getTextureDownRight() +
-                           " " + mapFile.getSpotAtPoint(infoPoint.upRight()).getTextureBelow());
-        System.out.println("   -- Below 1: " + mapFile.getSpotAtPoint(infoPoint.left()).getTextureDownRight() +
-                           " " + mapFile.getSpotAtPoint(infoPoint).getTextureBelow() +
-                           " " + mapFile.getSpotAtPoint(infoPoint).getTextureDownRight());
-        System.out.println("   -- Below 2: " + mapFile.getSpotAtPoint(infoPoint.downLeft()).getTextureBelow() +
-                           " " + mapFile.getSpotAtPoint(infoPoint.downLeft()).getTextureDownRight() +
-                           " " + mapFile.getSpotAtPoint(infoPoint.downRight()).getTextureBelow());
+        System.out.println("   -- Above 1: " +
+                mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.up()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.up()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getTextureBelow());
+        System.out.println("   -- Above 2: " +
+                mapFile.getSpotAtPoint(infoPoint.upLeft().left()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.upLeft()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.upLeft()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.upRight()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.upRight()).getTextureDownRight());
+        System.out.println("   -- Below 1: " +
+                mapFile.getSpotAtPoint(infoPoint.left()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.left()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.right()).getTextureBelow());
+        System.out.println("   -- Below 2: " +
+                mapFile.getSpotAtPoint(infoPoint.left().downLeft()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.downLeft()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.downLeft()).getTextureDownRight() + " " +
+                mapFile.getSpotAtPoint(infoPoint.downRight()).getTextureBelow() + " " +
+                mapFile.getSpotAtPoint(infoPoint.downRight()).getTextureDownRight());
 
         System.out.println(" - Surrounding available buildings:");
-        System.out.println("   -- Above 1: " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getBuildableSite()) +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.up()).getBuildableSite()) +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getBuildableSite()));
-        System.out.println("   -- Above 2:           " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upLeft()).getBuildableSite()) +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upRight()).getBuildableSite()));
-        System.out.println("   -- Same:    " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.left()).getBuildableSite()) +
-                " " + String.format("%-20s", "POINT") +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.right()).getBuildableSite()));
-        System.out.println("   -- Below 1:           " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downLeft()).getBuildableSite()) +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downRight()).getBuildableSite()));
-        System.out.println("   -- Below 2: " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downLeft().downLeft()).getBuildableSite()) +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.down()).getBuildableSite()) +
-                " " + String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downRight().downRight()).getBuildableSite()));
+        System.out.println("   -- Above 1: " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.up()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getBuildableSite()));
+        System.out.println("   -- Above 2:           " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upRight()).getBuildableSite()));
+        System.out.println("   -- Same:    " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.left()).getBuildableSite()) + " " +
+                String.format("%-20s", "POINT") + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.right()).getBuildableSite()));
+        System.out.println("   -- Below 1:           " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downRight()).getBuildableSite()));
+        System.out.println("   -- Below 2: " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downLeft().downLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.down()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downRight().downRight()).getBuildableSite()));
 
         System.out.println(" - Surrounding stones and trees:");
         System.out.println("   -- Above 1: " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.upLeft().upLeft()) + " " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.up()) + " " +
                 treeOrStoneOrNoneString(mapFile, (infoPoint.upRight().upRight())));
-        System.out.println("   -- Above 2:       " +
+        System.out.println("   -- Above 2:    " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.upLeft()) + " " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.upRight()));
         System.out.println("   -- Same:    " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.left()) + " " +
                 "POINT" + " " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.right()));
-        System.out.println("   -- Below 1:       " +
+        System.out.println("   -- Below 1:    " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.downLeft()) + " " +
                 treeOrStoneOrNoneString(mapFile, infoPoint.downRight()));
         System.out.println("   -- Below 2: " +
@@ -399,36 +416,50 @@ public class Inspector {
         }
 
         System.out.println(" - Surrounding terrain:");
-        System.out.println("   -- Above 1: " + map.getTerrain().getTileUpLeft(infoPoint.up()) +
-                " " + map.getTerrain().getTileAbove(infoPoint.up()) +
-                " " + map.getTerrain().getTileUpRight(infoPoint.up()));
-        System.out.println("   -- Above 2: " + map.getTerrain().getTileDownLeft(infoPoint.up()) +
-                " " + map.getTerrain().getTileBelow(infoPoint.up()) +
-                " " + map.getTerrain().getTileDownRight(infoPoint.up()));
-        System.out.println("   -- Above 3: " + map.getTerrain().getTileUpLeft(infoPoint) +
-                " " + map.getTerrain().getTileAbove(infoPoint) +
-                " " + map.getTerrain().getTileUpRight(infoPoint));
-        System.out.println("   -- Below 1: " + map.getTerrain().getTileDownLeft(infoPoint) +
-                " " + map.getTerrain().getTileBelow(infoPoint) +
-                " " + map.getTerrain().getTileDownRight(infoPoint));
-        System.out.println("   -- Below 2: " + map.getTerrain().getTileDownLeft(infoPoint.down()) +
-                " " + map.getTerrain().getTileBelow(infoPoint.down()) +
-                " " + map.getTerrain().getTileDownRight(infoPoint.down()));
+        System.out.println("   -- Above 1: " +
+                map.getTerrain().getTileUpLeft(infoPoint.up()) + " " +
+                map.getTerrain().getTileAbove(infoPoint.up()) + " " +
+                map.getTerrain().getTileUpRight(infoPoint.up()));
+        System.out.println("   -- Above 2: " +
+                map.getTerrain().getTileDownLeft(infoPoint.up()) + " " +
+                map.getTerrain().getTileBelow(infoPoint.up()) + " " +
+                map.getTerrain().getTileDownRight(infoPoint.up()));
+        System.out.println("   -- Above 3: " +
+                map.getTerrain().getTileUpLeft(infoPoint) + " " +
+                map.getTerrain().getTileAbove(infoPoint) + " " +
+                map.getTerrain().getTileUpRight(infoPoint));
+        System.out.println("   -- Below 1: " +
+                map.getTerrain().getTileDownLeft(infoPoint) + " " +
+                map.getTerrain().getTileBelow(infoPoint) + " " +
+                map.getTerrain().getTileDownRight(infoPoint));
+        System.out.println("   -- Below 2: " +
+                map.getTerrain().getTileUpLeft(infoPoint.down()) + " " +
+                map.getTerrain().getTileAbove(infoPoint.down()) + " " +
+                map.getTerrain().getTileUpRight(infoPoint.down()));
+        System.out.println("   -- Below 3: " +
+                map.getTerrain().getTileDownLeft(infoPoint.down()) + " " +
+                map.getTerrain().getTileBelow(infoPoint.down()) + " " +
+                map.getTerrain().getTileDownRight(infoPoint.down()));
 
         System.out.println(" - Surrounding available buildings:");
-        System.out.println("   -- Above 1: " + String.format("%-20s", availableHousePoints.get(infoPoint.upLeft().upLeft())) +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.up())) +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.upRight().upRight())));
-        System.out.println("   -- Above 2:           " + String.format("%-20s", availableHousePoints.get(infoPoint.upLeft())) +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.upRight())));
-        System.out.println("   -- Same:    " + String.format("%-20s", availableHousePoints.get(infoPoint.left())) +
-                " " + String.format("%-20s", "POINT") +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.right())));
-        System.out.println("   -- Below 1:           " + String.format("%-20s", availableHousePoints.get(infoPoint.downLeft())) +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.downRight())));
-        System.out.println("   -- Below 2: " + String.format("%-20s", availableHousePoints.get(infoPoint.downLeft().downLeft())) +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.down())) +
-                " " + String.format("%-20s", availableHousePoints.get(infoPoint.downRight().downRight())));
+        System.out.println("   -- Above 1: " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.upLeft().upLeft())) + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.up())) + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.upRight().upRight())));
+        System.out.println("   -- Above 2:           " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.upLeft())) + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.upRight())));
+        System.out.println("   -- Same:    " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.left())) + " " +
+                String.format("%-20s", "POINT") + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.right())));
+        System.out.println("   -- Below 1:           " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.downLeft())) + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.downRight())));
+        System.out.println("   -- Below 2: " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.downLeft().downLeft())) + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.down())) + " " +
+                String.format("%-20s", availableHousePoints.get(infoPoint.downRight().downRight())));
 
         /* Print the closest border point */
         int distance = getDistanceToBorder(infoPoint, player);
