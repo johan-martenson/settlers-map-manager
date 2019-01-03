@@ -35,7 +35,7 @@ public enum Texture {
     LAVA_4(22),
     BUILDABLE_MOUNTAIN_2(23);
 
-    private int id;
+    private final int id;
 
     Texture(int id) {
         this.id = id;

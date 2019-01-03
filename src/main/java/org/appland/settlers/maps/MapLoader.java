@@ -5,8 +5,6 @@ import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
 import org.appland.settlers.model.Terrain;
-import org.appland.settlers.model.Tile;
-import org.appland.settlers.model.Tile.Vegetation;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
@@ -85,7 +83,7 @@ public class MapLoader {
             }
 
             /* Read title */
-            String title = "";
+            String title;
 
             if (isWldMode()) {
                 title = Utils.readString(fis, 23);

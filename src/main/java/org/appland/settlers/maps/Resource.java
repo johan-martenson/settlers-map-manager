@@ -15,8 +15,8 @@ class Resource {
     private static final int GOLD_OFFSET = 80;
     private static final int GRANITE_OFFSET = 88;
 
-    ResourceType type;
-    int amount;
+    final ResourceType type;
+    final int amount;
 
     public Resource(ResourceType type, int amount) {
         this.type = type;

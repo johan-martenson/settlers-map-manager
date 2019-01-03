@@ -54,7 +54,7 @@ public class Inspector {
     private boolean dumpSpots = false;
 
     /* Regular fields */
-    private MapLoader mapLoader;
+    private final MapLoader mapLoader;
     private MapFile   mapFile;
     private int       consoleHeight;
     private int       consoleWidth;
@@ -231,7 +231,7 @@ public class Inspector {
         String[][] mapFileRender = renderMapFileToStringArray(mapFile, mapFile.getStartingPoints());
 
         /* Print the render of the map file */
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (String[] row : mapFileRender) {
 
             int index = 0;
@@ -548,7 +548,7 @@ public class Inspector {
      * @return
      * @throws Exception
      */
-    private String[][] compareAvailableBuildingPoints() throws Exception {
+    private void compareAvailableBuildingPoints() throws Exception {
 
         System.out.println("Available starting points in MapFile and in GameMap");
         System.out.println();
@@ -657,8 +657,6 @@ public class Inspector {
         System.out.println(" - Matching: " + matched.size());
         System.out.println(" - Mismatched: " + mismatched.size());
         System.out.println(" - Filtered: " + filtered);
-
-        return new String[4][4];
     }
 
     private boolean isComparisonUnreliable(int distanceToBorder, int distanceToHeadquarter) {

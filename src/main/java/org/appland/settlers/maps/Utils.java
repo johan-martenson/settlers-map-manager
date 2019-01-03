@@ -45,7 +45,7 @@ class Utils {
     }
 
     static String getHex(byte[] blockHeader1) {
-        StringBuffer hex = new StringBuffer();
+        StringBuilder hex = new StringBuilder();
 
         for (byte b : blockHeader1) {
             hex.append(Integer.toHexString((int)(b & 0xff)));
