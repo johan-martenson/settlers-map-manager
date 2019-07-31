@@ -162,16 +162,6 @@ public class MapLoader {
             }
 
             if (debug) {
-                System.out.print(" -- Starting positions: ");
-            }
-
-            if (debug) {
-                for (Point point : mapFile.getStartingPoints()) {
-                    System.out.print("(" + point.x + ", " + point.y + ") ");
-                }
-            }
-
-            if (debug) {
                 System.out.println();
             }
 
@@ -516,8 +506,6 @@ public class MapLoader {
                 }
             }
 
-            System.out.println();
-
             /* Skip eighth block with unknown data */
             if (debug) {
                 System.out.println();
@@ -700,6 +688,16 @@ public class MapLoader {
 
         /* Set starting points */
         gameMap.setStartingPoints(mapFile.getStartingPoints());
+
+        if (debug) {
+            System.out.print(" -- Starting positions: ");
+        }
+
+        if (debug) {
+            for (Point point : mapFile.getStartingPoints()) {
+                System.out.print("(" + point.x + ", " + point.y + ") ");
+            }
+        }
 
         return gameMap;
     }
