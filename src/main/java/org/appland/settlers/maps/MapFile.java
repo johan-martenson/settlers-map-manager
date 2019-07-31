@@ -56,7 +56,7 @@ public class MapFile {
         this.title = title;
     }
 
-    String getTitle() {
+    public String getTitle() {
         return title;
     }
 
@@ -94,7 +94,7 @@ public class MapFile {
         this.width = width;
     }
 
-    int getWidth() {
+    public int getWidth() {
         return width;
     }
 
@@ -102,7 +102,7 @@ public class MapFile {
         this.height = height;
     }
 
-    int getHeight() {
+    public int getHeight() {
         return height;
     }
 
@@ -118,11 +118,11 @@ public class MapFile {
         return spotList;
     }
 
-    List<Point> getStartingPoints() {
+    public List<Point> getStartingPoints() {
         return startingPositions;
     }
 
-    int getMaxNumberOfPlayers() {
+    public int getMaxNumberOfPlayers() {
         return maxNumberOfPlayers;
     }
 
