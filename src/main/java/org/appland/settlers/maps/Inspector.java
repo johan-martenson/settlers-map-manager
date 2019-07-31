@@ -3,7 +3,6 @@ package org.appland.settlers.maps;
 import org.appland.settlers.model.Building;
 import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Headquarter;
-import org.appland.settlers.model.Land;
 import org.appland.settlers.model.Player;
 import org.appland.settlers.model.Point;
 import org.appland.settlers.model.Size;
@@ -20,6 +19,9 @@ import java.util.Map;
 public class Inspector {
 
     /* Define command line options */
+    @Option(name="--info", usage ="Print information about the map")
+    boolean printInfo = false;
+
     @Option(name="--debug", usage="Print debug information")
     boolean debug = false;
 
@@ -74,6 +76,11 @@ public class Inspector {
 
         inspector.loadMapFile(mapFilename);
 
+        /* Print map info if selected */
+        if (inspector.isPrintInfoSelected()) {
+            inspector.printMapInfo();
+        }
+
         /* Print the map from the file */
         if (inspector.isPrintMapFromFileChosen()) {
             inspector.printMapFile();
@@ -98,6 +105,20 @@ public class Inspector {
         if (inspector.isDumpSpotsChosen()) {
             inspector.printSpotList();
         }
+    }
+
+    private void printMapInfo() {
+        System.out.println();
+        System.out.println("About the map:");
+        System.out.println(" - Title: " + mapFile.getTitle());
+        System.out.println(" - Author: " + mapFile.getAuthor());
+        System.out.println(" - Width: " + mapFile.getWidth());
+        System.out.println(" - Height: " + mapFile.getHeight());
+        System.out.println(" - Max number of players: " + mapFile.getMaxNumberOfPlayers());
+    }
+
+    private boolean isPrintInfoSelected() {
+        return printInfo;
     }
 
     private void printSpotList() {
@@ -397,15 +418,9 @@ public class Inspector {
         Player player = null;
 
         for (Player p : map.getPlayers()) {
-            for (Land land : p.getLands()) {
-                if (land.getPointsInLand().contains(infoPoint)) {
-                    player = p;
+            if (player.getLandInPoints().contains(infoPoint)) {
+                player = p;
 
-                    break;
-                }
-            }
-
-            if (player != null) {
                 break;
             }
         }
