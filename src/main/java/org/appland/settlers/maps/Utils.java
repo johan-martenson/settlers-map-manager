@@ -8,7 +8,6 @@ package org.appland.settlers.maps;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Tile;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -113,7 +112,7 @@ class Utils {
         }
     }
 
-    static String readString(FileInputStream fis, int length) throws IOException {
+    static String readString(InputStream fis, int length) throws IOException {
         byte[] array = new byte[length];
 
         fis.read(array, 0, length);
@@ -131,7 +130,7 @@ class Utils {
         return new String(array, 0, indexOfZero);
     }
 
-    static short readUnsignedByte(FileInputStream fis) throws IOException {
+    static short readUnsignedByte(InputStream fis) throws IOException {
 
         byte[] bytes = new byte[2];
 
