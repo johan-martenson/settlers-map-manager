@@ -214,11 +214,26 @@ public class MapFile {
         }
     }
 
-    void translateFileStartingPointsToGamePoints() {
+    void translateFileStartingPointsToGamePoints() throws InvalidMapException {
+
+        // filePointToSpots.get(point) == null (?)
+
         for (java.awt.Point point : fileStartingPoints) {
-            startingPositions.add(new org.appland.settlers.model.Point(
-                    filePointToSpots.get(point).getPosition()
-            ));
+
+            if (point == null || startingPositions == null || filePointToSpots == null || filePointToSpots.get(point) == null) {
+                System.out.println(point);
+                System.out.println(startingPositions);
+                System.out.println(filePointToSpots);
+                System.out.println(filePointToSpots.get(point));
+            }
+
+            SpotData spot = filePointToSpots.get(point);
+
+            if (spot == null) {
+                throw new InvalidMapException("The starting point " + point + " is outside of the map.");
+            }
+
+            startingPositions.add(new org.appland.settlers.model.Point(spot.getPosition()));
         }
     }
 

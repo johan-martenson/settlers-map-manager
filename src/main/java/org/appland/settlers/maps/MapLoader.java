@@ -11,7 +11,6 @@ import org.kohsuke.args4j.Option;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -48,16 +47,14 @@ public class MapLoader {
 
             MapFile mapFile = mapLoader.loadMapFromFile(mapLoader.filename);
             GameMap gameMap = mapLoader.convertMapFileToGameMap(mapFile);
-        } catch (Exception ex) {
+        } catch (Exception | InvalidMapException ex) {
             Logger.getLogger(MapLoader.class.getName()).log(Level.SEVERE, null, ex);
 
             System.exit(1);
         }
     }
 
-
-
-    public MapFile loadMapFromFile(String mapFilename) throws SettlersMapLoadingException, IOException {
+    public MapFile loadMapFromFile(String mapFilename) throws SettlersMapLoadingException, IOException, InvalidMapException {
         if (debug) {
             System.out.print("Loading " + mapFilename);
         }
@@ -67,7 +64,7 @@ public class MapLoader {
         return loadMapFromStream(fis);
     }
 
-    public MapFile loadMapFromStream(InputStream inputStream) throws SettlersMapLoadingException, IOException {
+    public MapFile loadMapFromStream(InputStream inputStream) throws SettlersMapLoadingException, IOException, InvalidMapException {
 
         byte[] fileHeader       = new byte[10];
         byte[] firstBlockHeader = new byte[16];
@@ -130,6 +127,10 @@ public class MapLoader {
 
         if (debug) {
             System.out.println(" -- Number of players: " + mapFile.getMaxNumberOfPlayers());
+        }
+
+        if (mapFile.getMaxNumberOfPlayers() < 1) {
+            throw new InvalidMapException("The map must contain at least one player");
         }
 
         /* Read the author */
@@ -238,9 +239,9 @@ public class MapLoader {
 
         /* Verify file id */
         if (fileIdBytes[0] != 0x11 || fileIdBytes[1] != 0x27) {
-            System.out.println("Invalid file id " + Utils.getHex(fileIdBytes) + " (must be 0x1127). Exiting.");
+            System.out.println("Warning: Invalid file id " + Utils.getHex(fileIdBytes) + " (must be 0x1127). Exiting.");
 
-            throw new SettlersMapLoadingException("Invalid file id " + Utils.getHex(fileIdBytes) + " (must be 0x1127). Exiting.");
+            //throw new SettlersMapLoadingException("Invalid file id " + Utils.getHex(fileIdBytes) + " (must be 0x1127). Exiting.");
         }
 
         /* Skip four un-used bytes */
@@ -248,16 +249,16 @@ public class MapLoader {
 
         if (reusedArray[0] != 0 || reusedArray[1] != 0 ||
             reusedArray[2] != 0 || reusedArray[3] != 0) {
-            System.out.println("Not zeros although mandatory. Are instead " +
+            System.out.println("Warning: Not zeros although mandatory. Are instead " +
                                 reusedArray[0] + " " +
                     reusedArray[0] + " " +
                     reusedArray[0] + " " +
                     reusedArray[0] + " ");
-            throw new SettlersMapLoadingException("Not zeros although mandatory. Are instead " +
+            /*throw new SettlersMapLoadingException("Not zeros although mandatory. Are instead " +
                     reusedArray[0] + " " +
                     reusedArray[0] + " " +
                     reusedArray[0] + " " +
-                    reusedArray[0] + " ");
+                    reusedArray[0] + " ");*/
         }
 
         /* Extra 01 00 bytes may appear here but no files seen so far have this */

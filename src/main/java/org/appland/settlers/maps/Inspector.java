@@ -68,7 +68,7 @@ public class Inspector {
      * @param args
      * @throws Exception
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception, InvalidMapException {
         Inspector inspector = new Inspector();
         CmdLineParser parser = new CmdLineParser(inspector);
 
@@ -239,7 +239,7 @@ public class Inspector {
      * @param mapFilename
      * @throws Exception
      */
-    private void loadMapFile(String mapFilename) throws Exception {
+    private void loadMapFile(String mapFilename) throws Exception, InvalidMapException {
         mapFile = mapLoader.loadMapFromFile(mapFilename);
         map = mapLoader.convertMapFileToGameMap(mapFile);
     }
