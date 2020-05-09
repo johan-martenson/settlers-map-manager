@@ -508,16 +508,15 @@ public class Inspector {
      */
     private int getDistanceToBorder(Point infoPoint, Player player) {
         int distance = Integer.MAX_VALUE;
-        for (Collection<Point> border : player.getBorders()) {
-            for (Point point : border) {
+        for (Point point : player.getBorderPoints()) {
 
-                int tmpDistance = distanceInGame(point, infoPoint);
+            int tmpDistance = distanceInGame(point, infoPoint);
 
-                if (tmpDistance < distance) {
-                    distance = tmpDistance;
-                }
+            if (tmpDistance < distance) {
+                distance = tmpDistance;
             }
         }
+
         return distance;
     }
 
