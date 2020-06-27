@@ -5,6 +5,10 @@
  */
 package org.appland.settlers.maps;
 
+import org.appland.settlers.model.Material;
+
+import org.appland.settlers.model.Material;
+
 /**
  *
  * @author johan
@@ -33,5 +37,19 @@ public enum ResourceType {
         } else {
             return null;
         }
+    }
+
+    Material getMineralType() {
+        if (this == COAL) {
+            return Material.COAL;
+        } else if (this == IRON_ORE) {
+            return Material.IRON;
+        } else if (this == GOLD) {
+            return Material.GOLD;
+        } else if (this == GRANITE) {
+            return Material.STONE;
+        }
+
+        return null;
     }
 }

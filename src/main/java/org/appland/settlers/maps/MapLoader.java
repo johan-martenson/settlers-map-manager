@@ -681,14 +681,14 @@ public class MapLoader {
             org.appland.settlers.model.Point point = spot.getPosition();
 
             /* Assign textures */
-            terrain.getTileBelow(point).setVegetationType(Utils.convertTextureToVegetation(spot.getTextureBelow()));
-            terrain.getTileDownRight(point).setVegetationType(Utils.convertTextureToVegetation(spot.getTextureDownRight()));
+            terrain.setTileBelow(point, Utils.convertTextureToVegetation(spot.getTextureBelow()));
+            terrain.setTileDownRight(point, Utils.convertTextureToVegetation(spot.getTextureDownRight()));
 
             /* Set mineral quantities */
             if (spot.hasMineral()) {
                 Material mineral = Utils.resourceTypeToMaterial(spot.getMineralType());
 
-                terrain.getTileAbove(point).setAmountMineral(mineral, spot.getMineralQuantity());
+                gameMap.setMineralAmount(point, mineral, spot.getMineralQuantity());
             }
 
             /* Place stones */

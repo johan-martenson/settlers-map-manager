@@ -5,6 +5,7 @@
  */
 package org.appland.settlers.maps;
 
+import org.appland.settlers.model.Vegetation;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Tile;
 
@@ -63,33 +64,33 @@ class Utils {
         return true;
     }
 
-    static Tile.Vegetation convertTextureToVegetation(Texture textureBelow) {
+    static Vegetation convertTextureToVegetation(Texture textureBelow) {
 
         switch (textureBelow.getValue()) {
-            case 0x00: return Tile.Vegetation.SAVANNAH;           // Savannah - can build houses
-            case 0x01: return Tile.Vegetation.MOUNTAIN;           // Mountain 1 - mining
-            case 0x02: return Tile.Vegetation.SNOW;               // Snow - can't walk on the snow
-            case 0x03: return Tile.Vegetation.SWAMP;              // Swamp - can't walk on swamp?
-            case 0x04: return Tile.Vegetation.DESERT;             // Desert 1 - flags
-            case 0x05: return Tile.Vegetation.DEEP_WATER;         // Water - no walking, sailing
-            case 0x06: return Tile.Vegetation.SHALLOW_WATER;      // Buildable water - can build houses
-            case 0x07: return Tile.Vegetation.DESERT;             // Desert 2 - flags
-            case 0x08: return Tile.Vegetation.GRASS;              // Meadow 1 - can build houses
-            case 0x09: return Tile.Vegetation.GRASS;              // Meadow 2 - can build houses
-            case 0x0A: return Tile.Vegetation.GRASS;              // Meadow 3 - can build houses
-            case 0x0B: return Tile.Vegetation.MOUNTAIN;           // Mountain 2 - mining
-            case 0x0C: return Tile.Vegetation.MOUNTAIN;           // Mountain 3 - mining
-            case 0x0D: return Tile.Vegetation.MOUNTAIN;           // Mountain 4 - mining
-            case 0x0E: return Tile.Vegetation.STEPPE;             // Steppe - can build houses
-            case 0x0F: return Tile.Vegetation.GRASS;              // Flower meadow - can build houses
-            case 0x10: return Tile.Vegetation.LAVA;               // Lava - no walking
-            case 0x11: return Tile.Vegetation.MAGENTA;            // MAGENTA - build flags
-            case 0x12: return Tile.Vegetation.MOUNTAIN_MEADOW;    // Mountain meadow - can build houses
-            case 0x13: return Tile.Vegetation.WATER;              // Water - no walking, no building, no sailing
-            case 0x14: return Tile.Vegetation.LAVA;               // Lava 2 - no walking, building
-            case 0x15: return Tile.Vegetation.LAVA;               // Lava 3 - no walking, building
-            case 0x16: return Tile.Vegetation.LAVA;               // Lava 4 - no walking, building
-            case 0x22: return Tile.Vegetation.BUILDABLE_MOUNTAIN; // Buildable mountain can build houses, walking, no mining
+            case 0x00: return Vegetation.SAVANNAH;           // Savannah - can build houses
+            case 0x01: return Vegetation.MOUNTAIN;           // Mountain 1 - mining
+            case 0x02: return Vegetation.SNOW;               // Snow - can't walk on the snow
+            case 0x03: return Vegetation.SWAMP;              // Swamp - can't walk on swamp?
+            case 0x04: return Vegetation.DESERT;             // Desert 1 - flags
+            case 0x05: return Vegetation.DEEP_WATER;         // Water - no walking, sailing
+            case 0x06: return Vegetation.SHALLOW_WATER;      // Buildable water - can build houses
+            case 0x07: return Vegetation.DESERT;             // Desert 2 - flags
+            case 0x08: return Vegetation.GRASS;              // Meadow 1 - can build houses
+            case 0x09: return Vegetation.GRASS;              // Meadow 2 - can build houses
+            case 0x0A: return Vegetation.GRASS;              // Meadow 3 - can build houses
+            case 0x0B: return Vegetation.MOUNTAIN;           // Mountain 2 - mining
+            case 0x0C: return Vegetation.MOUNTAIN;           // Mountain 3 - mining
+            case 0x0D: return Vegetation.MOUNTAIN;           // Mountain 4 - mining
+            case 0x0E: return Vegetation.STEPPE;             // Steppe - can build houses
+            case 0x0F: return Vegetation.GRASS;              // Flower meadow - can build houses
+            case 0x10: return Vegetation.LAVA;               // Lava - no walking
+            case 0x11: return Vegetation.MAGENTA;            // MAGENTA - build flags
+            case 0x12: return Vegetation.MOUNTAIN_MEADOW;    // Mountain meadow - can build houses
+            case 0x13: return Vegetation.WATER;              // Water - no walking, no building, no sailing
+            case 0x14: return Vegetation.LAVA;               // Lava 2 - no walking, building
+            case 0x15: return Vegetation.LAVA;               // Lava 3 - no walking, building
+            case 0x16: return Vegetation.LAVA;               // Lava 4 - no walking, building
+            case 0x22: return Vegetation.BUILDABLE_MOUNTAIN; // Buildable mountain can build houses, walking, no mining
             default:
                 System.out.println("Can't handle texture " + textureBelow);
                 System.exit(1);
