@@ -432,29 +432,29 @@ public class Inspector {
 
         System.out.println(" - Surrounding terrain:");
         System.out.println("   -- Above 1: " +
-                map.getTerrain().getTileUpLeft(infoPoint.up()) + " " +
-                map.getTerrain().getTileAbove(infoPoint.up()) + " " +
-                map.getTerrain().getTileUpRight(infoPoint.up()));
+                map.getTileUpLeft(infoPoint.up()) + " " +
+                map.getTileAbove(infoPoint.up()) + " " +
+                map.getTileUpRight(infoPoint.up()));
         System.out.println("   -- Above 2: " +
-                map.getTerrain().getTileDownLeft(infoPoint.up()) + " " +
-                map.getTerrain().getTileBelow(infoPoint.up()) + " " +
-                map.getTerrain().getTileDownRight(infoPoint.up()));
+                map.getTileDownLeft(infoPoint.up()) + " " +
+                map.getTileBelow(infoPoint.up()) + " " +
+                map.getTileDownRight(infoPoint.up()));
         System.out.println("   -- Above 3: " +
-                map.getTerrain().getTileUpLeft(infoPoint) + " " +
-                map.getTerrain().getTileAbove(infoPoint) + " " +
-                map.getTerrain().getTileUpRight(infoPoint));
+                map.getTileUpLeft(infoPoint) + " " +
+                map.getTileAbove(infoPoint) + " " +
+                map.getTileUpRight(infoPoint));
         System.out.println("   -- Below 1: " +
-                map.getTerrain().getTileDownLeft(infoPoint) + " " +
-                map.getTerrain().getTileBelow(infoPoint) + " " +
-                map.getTerrain().getTileDownRight(infoPoint));
+                map.getTileDownLeft(infoPoint) + " " +
+                map.getTileBelow(infoPoint) + " " +
+                map.getTileDownRight(infoPoint));
         System.out.println("   -- Below 2: " +
-                map.getTerrain().getTileUpLeft(infoPoint.down()) + " " +
-                map.getTerrain().getTileAbove(infoPoint.down()) + " " +
-                map.getTerrain().getTileUpRight(infoPoint.down()));
+                map.getTileUpLeft(infoPoint.down()) + " " +
+                map.getTileAbove(infoPoint.down()) + " " +
+                map.getTileUpRight(infoPoint.down()));
         System.out.println("   -- Below 3: " +
-                map.getTerrain().getTileDownLeft(infoPoint.down()) + " " +
-                map.getTerrain().getTileBelow(infoPoint.down()) + " " +
-                map.getTerrain().getTileDownRight(infoPoint.down()));
+                map.getTileDownLeft(infoPoint.down()) + " " +
+                map.getTileBelow(infoPoint.down()) + " " +
+                map.getTileDownRight(infoPoint.down()));
 
         System.out.println(" - Surrounding available buildings:");
         System.out.println("   -- Above 1: " +
@@ -581,7 +581,7 @@ public class Inspector {
         map.placeBuilding(new Headquarter(player), map.getStartingPoints().get(0));
 
         /* Compare the available building points calculated in the game with the corresponding points in the MapFile */
-        Map<Point, Size> availablePoints = player.getAvailableHousePoints();
+        Map<Point, Size> availablePoints = map.getAvailableHousePoints(player);
 
         Map<Point, AvailableBuildingComparison> matched    = new HashMap<>();
         Map<Point, AvailableBuildingComparison> mismatched = new HashMap<>();

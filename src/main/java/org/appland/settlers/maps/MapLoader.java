@@ -4,7 +4,6 @@ package org.appland.settlers.maps;
 import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
-import org.appland.settlers.model.Terrain;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
@@ -674,15 +673,13 @@ public class MapLoader {
         GameMap gameMap = new GameMap(players, mapFile.getWidth() * 2 + 2, mapFile.getHeight() + 3);
 
         /* Set up the terrain */
-        Terrain terrain = gameMap.getTerrain();
-
         for (SpotData spot : mapFile.getSpots()) {
 
             org.appland.settlers.model.Point point = spot.getPosition();
 
             /* Assign textures */
-            terrain.setTileBelow(point, Utils.convertTextureToVegetation(spot.getTextureBelow()));
-            terrain.setTileDownRight(point, Utils.convertTextureToVegetation(spot.getTextureDownRight()));
+            gameMap.setTileBelow(point, Utils.convertTextureToVegetation(spot.getTextureBelow()));
+            gameMap.setTileDownRight(point, Utils.convertTextureToVegetation(spot.getTextureDownRight()));
 
             /* Set mineral quantities */
             if (spot.hasMineral()) {

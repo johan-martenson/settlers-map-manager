@@ -7,7 +7,6 @@ package org.appland.settlers.maps;
 
 import org.appland.settlers.model.Vegetation;
 import org.appland.settlers.model.Material;
-import org.appland.settlers.model.Tile;
 
 import java.io.IOException;
 import java.io.InputStream;
