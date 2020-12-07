@@ -19,7 +19,7 @@ import java.nio.ByteOrder;
  */
 class Utils {
 
-    public static short getUnsignedByteInArray (byte[] arr, int i) {
+    public static short getUint8InArray(byte[] arr, int i) {
         ByteBuffer bb = ByteBuffer.wrap(arr);
         return ((short)(bb.get(i) & 0xff));
     }
@@ -32,13 +32,13 @@ class Utils {
         return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getChar();
     }
 
-    public static char getUnsignedShortInArray (byte[] arr, int i) {
+    public static char getUint16InArray(byte[] arr, int i) {
         ByteBuffer bb = ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
 
         return bb.getChar(i);
     }
 
-    public static long getUnsignedIntInArray (byte[] arr, int i) {
+    public static long getUint32InArray(byte[] arr, int i) {
         ByteBuffer bb = ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
         return ((long)bb.getInt(i) & 0xffffffff);
     }
@@ -136,6 +136,6 @@ class Utils {
 
         fis.read(bytes, 0, 1);
 
-        return Utils.getUnsignedByteInArray(bytes, 0);
+        return Utils.getUint8InArray(bytes, 0);
     }
 }

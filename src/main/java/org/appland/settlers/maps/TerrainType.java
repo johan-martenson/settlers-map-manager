@@ -24,7 +24,7 @@ public enum TerrainType {
         return id;
     }
 
-    static TerrainType fromShort(short b) {
+    static TerrainType fromUint8(short b) {
         for (TerrainType value : TerrainType.values()) {
             if (value.id == (int)b) {
                 return value;
