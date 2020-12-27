@@ -1,6 +1,5 @@
 package org.appland.settlers.maps;
 
-
 import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
@@ -30,9 +29,6 @@ public class MapLoader {
 
     @Option(name="--debug", usage="Print debug information")
     boolean debug = true;
-
-    @Option(name="--mode", usage="Set swd or wld file format explicitly")
-    String mode = "swd";
 
     public static void main(String[] args) {
 
@@ -312,7 +308,7 @@ public class MapLoader {
 
         /* Read the below texture for each point on the map */
         for (int i = 0; i < subBlockSize; i++) {
-            Texture texture = Texture.textureFromInt(streamReader.getUint8());
+            Texture texture = Texture.textureFromUint8(streamReader.getUint8());
 
             mapFile.getSpot(i).setVegetationBelow(texture);
 
@@ -338,7 +334,7 @@ public class MapLoader {
 
         /* Read textures */
         for (int i = 0; i < subBlockSize; i++) {
-            Texture texture = Texture.textureFromInt(streamReader.getUint8());
+            Texture texture = Texture.textureFromUint8(streamReader.getUint8());
 
             mapFile.getSpot(i).setVegetationDownRight(texture);
         }
@@ -618,8 +614,8 @@ public class MapLoader {
             org.appland.settlers.model.Point point = mapFilePoint.getPosition();
 
             /* Assign textures */
-            gameMap.setTileBelow(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationBelow()));
-            gameMap.setTileDownRight(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationDownRight()));
+            gameMap.setDetailedVegetationBelow(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationBelow()));
+            gameMap.setDetailedVegetationDownRight(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationDownRight()));
 
             /* Set mineral quantities */
             if (mapFilePoint.hasMineral()) {
