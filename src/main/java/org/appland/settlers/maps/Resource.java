@@ -10,10 +10,10 @@ package org.appland.settlers.maps;
  * @author johan
  */
 class Resource {
-    private static final int COAL_OFFSET = 64;
-    private static final int IRON_OFFSET = 72;
-    private static final int GOLD_OFFSET = 80;
-    private static final int GRANITE_OFFSET = 88;
+    private static final int COAL_OFFSET = 64; // 0x40
+    private static final int IRON_OFFSET = 72; // 0x48
+    private static final int GOLD_OFFSET = 80; // 0x50
+    private static final int GRANITE_OFFSET = 88; // 0x58
 
     final ResourceType type;
     final int amount;

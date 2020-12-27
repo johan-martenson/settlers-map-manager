@@ -7,12 +7,17 @@ package org.appland.settlers.maps;
 
 import org.appland.settlers.model.Point;
 import org.appland.settlers.model.Size;
+import org.appland.settlers.model.Tree.TreeType;
 
 /**
  *
  * @author johan
  */
-class SpotData {
+class MapFilePoint {
+
+    private static final short DEAD_TREE = 0x1F;
+    private static final short NATURE_DECORATION_1 = 0xC8;
+    private static final short NATURE_DECORATION_2 = 0xC9;
 
     private int height;
     private Texture textureDown;
@@ -28,15 +33,20 @@ class SpotData {
         height = heightAtPoint;
     }
 
-    void setTextureTriangleBelow(Texture tex) {
-        textureDown = tex;
+    void setVegetationBelow(Texture texture) {
+        textureDown = texture;
     }
-    Texture getTextureBelow() {
+
+    Texture getVegetationBelow() {
         return textureDown;
     }
 
-    void setTextureTriangleDownRight(Texture tex) {
-        textureDownRight = tex;
+    void setVegetationDownRight(Texture texture) {
+        textureDownRight = texture;
+    }
+
+    Texture getVegetationDownRight() {
+        return textureDownRight;
     }
 
     void setObjectProperties(short unsignedByteInArray) {
@@ -57,10 +67,6 @@ class SpotData {
 
     void setResource(Resource resource) {
         this.resource = resource;
-    }
-
-    Texture getTextureDownRight() {
-        return textureDownRight;
     }
 
     boolean hasMineral() {
@@ -94,11 +100,25 @@ class SpotData {
     }
 
     boolean hasStone() {
-        if (objectProperties == 2 || objectProperties == 3 || objectProperties == 4) {
+        if (objectType == 0xCC || objectType == 0xCD) {
             return true;
         }
 
         return false;
+    }
+
+    StoneType getStoneType() {
+        if (objectType == 0xCC) {
+            return StoneType.STONE_1;
+        } else if (objectType == 0xCD) {
+            return StoneType.STONE_2;
+        }
+
+        return null;
+    }
+
+    int getStoneAmount() {
+        return objectProperties;
     }
 
     boolean hasTree() {
@@ -110,6 +130,45 @@ class SpotData {
         } else {
             return false;
         }
+    }
+
+    boolean isNatureDecoration() {
+        return objectType == NATURE_DECORATION_1 || objectType == NATURE_DECORATION_2;
+    }
+
+    DecorationType getNatureDecorationType() {
+        return DecorationType.getDecorationTypeForUint8(objectProperties);
+    }
+
+    TreeType getTreeType() {
+        if (objectType == 0xC4) {
+
+            if (objectProperties >= 0x30 && objectProperties <= 0x37) {
+                return TreeType.TREE_TYPE_1;
+            } else if (objectProperties >= 0x70 && objectProperties <= 0x77) {
+                return TreeType.TREE_TYPE_2;
+            } else if (objectProperties >= 0xB0 && objectProperties <= 0xB7) {
+                return TreeType.TREE_TYPE_3;
+            } else if (objectProperties >= 0xF0 && objectProperties <= 0xF7) {
+                return TreeType.TREE_TYPE_4;
+            }
+        } else if (objectType == 0xC5) {
+            if (objectProperties >= 0x30 && objectProperties <= 0x37) {
+                return TreeType.TREE_TYPE_5;
+            } else if (objectProperties >= 0x70 && objectProperties <= 0x77) {
+                return TreeType.TREE_TYPE_6;
+            } else if (objectProperties >= 0xB0 && objectProperties <= 0xB7) {
+                return TreeType.TREE_TYPE_7;
+            } else if (objectProperties >= 0xF0 && objectProperties <= 0xF7) {
+                return TreeType.TREE_TYPE_8;
+            }
+        } else if (objectType == 0xC6) {
+            if (objectProperties >= 0x30 && objectProperties <= 0x3D) {
+                return TreeType.TREE_TYPE_9;
+            }
+        }
+
+        return null;
     }
 
     public boolean hasWildAnimal() {
@@ -130,5 +189,9 @@ class SpotData {
 
     public int getHeight() {
         return height;
+    }
+
+    public boolean hasDeadTree() {
+        return (objectType == NATURE_DECORATION_1 || objectType == NATURE_DECORATION_2) && objectProperties == DEAD_TREE;
     }
 }

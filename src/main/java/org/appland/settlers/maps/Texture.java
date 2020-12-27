@@ -46,6 +46,9 @@ public enum Texture {
     }
 
     public static Texture textureFromInt(int i) {
+
+        // Should only consider the lower six bits, i.e. & 0x3F
+
         switch (i) {
             case 0:
                 return SAVANNAH;

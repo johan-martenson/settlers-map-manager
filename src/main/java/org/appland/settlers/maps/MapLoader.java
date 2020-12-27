@@ -4,12 +4,12 @@ package org.appland.settlers.maps;
 import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
+import org.appland.settlers.model.Tree;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,13 +54,12 @@ public class MapLoader {
     }
 
     public MapFile loadMapFromFile(String mapFilename) throws SettlersMapLoadingException, IOException, InvalidMapException {
-        if (debug) {
-            System.out.print("Loading " + mapFilename);
-        }
+        printlnIfDebug();
+        printlnIfDebug("Loading: " + mapFilename);
 
-        FileInputStream fis = new FileInputStream(new File(mapFilename));
+        FileInputStream fileInputStream = new FileInputStream(mapFilename);
 
-        return loadMapFromStream(fis);
+        return loadMapFromStream(fileInputStream);
     }
 
     private void printlnIfDebug() {
@@ -87,37 +86,22 @@ public class MapLoader {
 
         MapFile mapFile = new MapFile();
 
-        if (isWldMode()) {
-            printlnIfDebug(" in WLD mode");
-        } else {
-            printlnIfDebug(" in SWD mode");
-        }
-
         /* Read file header */
         String fileHeader = streamReader.getUint8ArrayAsString(10);
 
         printlnIfDebug(" -- File header: " + fileHeader);
 
-        /* Read title */
-        String title;
+        /* Read title and potentially width & height.
+        *   - Next 24 bytes are either 20 byte title + 2 byte width + 2 byte height, or
+        *     24 bytes title
+        *  */
 
-        if (isWldMode()) {
-            title = streamReader.getUint8ArrayAsNullTerminatedString(24);
-        } else {
-            title = streamReader.getUint8ArrayAsNullTerminatedString(20);
-        }
+        ByteArray titleAndMaybeWidthAndHeight = streamReader.getUint8ArrayAsByteArray(24);
 
-        mapFile.setTitle(title);
+        int maybeWidth = titleAndMaybeWidthAndHeight.getUint16(20);
+        int maybeHeight = titleAndMaybeWidthAndHeight.getUint16(22);
 
-        System.out.println(" -- Title: " + title);
-
-        /* Read width and height for SWD maps*/
-        if (!isWldMode()) {
-            mapFile.setWidth(streamReader.getUint16());
-            mapFile.setHeight(streamReader.getUint16());
-        }
-
-        printlnIfDebug(" -- Dimensions: " + mapFile.getWidth() + " x " + mapFile.getHeight());
+        printlnIfDebug(" -- Maybe width x height: " + maybeWidth + " x " + maybeHeight);
 
         /* Read the terrain type */
         mapFile.setTerrainType(TerrainType.fromUint8(streamReader.getUint8()));
@@ -160,8 +144,7 @@ public class MapLoader {
             }
         }
 
-        printlnIfDebug(tmpStartingPositions);
-        printlnIfDebug();
+        printlnIfDebug(" -- Starting positions: " + tmpStartingPositions);
 
         /* Determine if the map is intended for unlimited play */
         if (streamReader.getUint8() == 0) {
@@ -248,16 +231,30 @@ public class MapLoader {
         int newWidth = streamReader.getUint16();
         int newHeight = streamReader.getUint16();
 
-        if (newWidth != mapFile.getWidth() || newHeight != mapFile.getHeight()) {
-            System.out.println("Warning: Dimensions don't match. Were "
-                    + mapFile.getWidth() + " x " + mapFile.getHeight() + "but now saw " + newWidth + " x " + newHeight);
+        String title;
+
+        if (newWidth != maybeWidth || newHeight != maybeHeight) {
+            title = titleAndMaybeWidthAndHeight.getNullTerminatedString(24);
+
+            mapFile.setTitleType(MapTitleType.LONG);
+        } else {
+            title = titleAndMaybeWidthAndHeight.getNullTerminatedString(20);
+
+            mapFile.setTitleType(MapTitleType.SHORT);
         }
+
+        mapFile.setWidth(newWidth);
+        mapFile.setHeight(newHeight);
+        mapFile.setTitle(title);
+
+        System.out.println(" -- Title type is: " + mapFile.getTitleType());
+        System.out.println(" -- Title is: " + title);
+        System.out.println(" -- Width x height: " + newWidth + " x " + newHeight);
 
         /* Read first sub block fileHeader with data about heights */
         BlockHeader heightBlockHeader = readBlockHeaderFromStream(streamReader);
 
-        printlnIfDebug();
-        printlnIfDebug("Height block header: " + heightBlockHeader);
+        printlnIfDebug(" -- Height block header: " + heightBlockHeader);
 
         /* Verify that the coming six bytes are: 0x 10 27 00 00 00 00 */
         if (!heightBlockHeader.isValid()) {
@@ -287,7 +284,7 @@ public class MapLoader {
 
         /* Read heights block */
         for (int i = 0; i < subBlockSize; i++) {
-            SpotData spot = new SpotData();
+            MapFilePoint spot = new MapFilePoint();
 
             spot.setHeight(streamReader.getUint8());
 
@@ -317,11 +314,12 @@ public class MapLoader {
         for (int i = 0; i < subBlockSize; i++) {
             Texture texture = Texture.textureFromInt(streamReader.getUint8());
 
-            mapFile.getSpot(i).setTextureTriangleBelow(texture);
+            mapFile.getSpot(i).setVegetationBelow(texture);
+
+            // Look for possible harbor locations - value & 0x40 != 0
         }
 
         /* Read textures for down-pointing triangles */
-        printlnIfDebug();
         printIfDebug("Texture block 2: ");
 
         /* Read down-right textures header */
@@ -342,11 +340,10 @@ public class MapLoader {
         for (int i = 0; i < subBlockSize; i++) {
             Texture texture = Texture.textureFromInt(streamReader.getUint8());
 
-            mapFile.getSpot(i).setTextureTriangleDownRight(texture);
+            mapFile.getSpot(i).setVegetationDownRight(texture);
         }
 
         /* Read the fourth sub block fileHeader with roads */
-        printlnIfDebug();
         printIfDebug("Road block: ");
 
         /* Read road block -- ignore for now */
@@ -367,7 +364,6 @@ public class MapLoader {
         streamReader.skip((int) subBlockSize);
 
         /* Read block with object properties */
-        printlnIfDebug();
         printIfDebug("Object property block: ");
 
         /* Read the block header */
@@ -390,7 +386,6 @@ public class MapLoader {
         }
 
         /* Read object types */
-        printlnIfDebug();
         printIfDebug("Object type block: ");
 
         /* Read object types */
@@ -413,8 +408,7 @@ public class MapLoader {
         }
 
         /* Read animals */
-        printlnIfDebug();
-        printlnIfDebug("Animals block: ");
+        printIfDebug("Animals block: ");
 
         /* Read block header */
         BlockHeader wildAnimalsBlockHeader = readBlockHeaderFromStream(streamReader);
@@ -431,8 +425,6 @@ public class MapLoader {
         }
 
         /* Read animals */
-        printIfDebug(" -- Wild animals: ");
-
         for (int i = 0; i < subBlockSize; i++) {
             Animal animal = Animal.animalFromInt(streamReader.getUint8());
 
@@ -442,7 +434,6 @@ public class MapLoader {
         }
 
         /* Skip block with unknown data */
-        printlnIfDebug();
         printIfDebug("Unknown block: ");
 
         /* Read block header */
@@ -463,7 +454,6 @@ public class MapLoader {
         streamReader.skip((int)subBlockSize);
 
         /* Read buildable sites */
-        printlnIfDebug();
         printIfDebug("Buildable sites block: ");
 
         /* Read block header */
@@ -488,7 +478,6 @@ public class MapLoader {
         }
 
         /* Skip tenth block with unknown data */
-        printlnIfDebug();
         printIfDebug("Second unknown block: ");
 
         /* Read block header */
@@ -509,7 +498,6 @@ public class MapLoader {
         streamReader.skip((int)subBlockSize);
 
         /* Skip the next block with map editor cursor position */
-        printlnIfDebug();
         printIfDebug("Map editor cursor position: ");
 
         /* Get block header */
@@ -530,7 +518,6 @@ public class MapLoader {
         streamReader.skip((int)subBlockSize);
 
         /* Read the resources block */
-        printlnIfDebug();
         printIfDebug("Resource block: ");
 
         /* Get block header */
@@ -613,10 +600,6 @@ public class MapLoader {
         return new BlockHeader(id, unknown, width, height, multiplier, blockLength);
     }
 
-    private boolean isWldMode() {
-        return mode.equals("wld");
-    }
-
     public GameMap convertMapFileToGameMap(MapFile mapFile) throws Exception {
 
         /* Generate list of players */
@@ -630,38 +613,44 @@ public class MapLoader {
         GameMap gameMap = new GameMap(players, mapFile.getWidth() * 2 + 2, mapFile.getHeight() + 3);
 
         /* Set up the terrain */
-        for (SpotData spot : mapFile.getSpots()) {
+        for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
 
-            org.appland.settlers.model.Point point = spot.getPosition();
+            org.appland.settlers.model.Point point = mapFilePoint.getPosition();
 
             /* Assign textures */
-            gameMap.setTileBelow(point, Utils.convertTextureToVegetation(spot.getTextureBelow()));
-            gameMap.setTileDownRight(point, Utils.convertTextureToVegetation(spot.getTextureDownRight()));
+            gameMap.setTileBelow(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationBelow()));
+            gameMap.setTileDownRight(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationDownRight()));
 
             /* Set mineral quantities */
-            if (spot.hasMineral()) {
-                Material mineral = Utils.resourceTypeToMaterial(spot.getMineralType());
+            if (mapFilePoint.hasMineral()) {
+                Material mineral = Utils.resourceTypeToMaterial(mapFilePoint.getMineralType());
 
-                gameMap.setMineralAmount(point, mineral, spot.getMineralQuantity());
+                gameMap.setMineralAmount(point, mineral, mapFilePoint.getMineralQuantity());
             }
 
             /* Place stones */
-            if (spot.hasStone()) {
+            if (mapFilePoint.hasStone()) {
                 gameMap.placeStone(point);
             }
 
             /* Place trees */
-            if (spot.hasTree()) {
-                gameMap.placeTree(point);
+            if (mapFilePoint.hasTree()) {
+                Tree tree = gameMap.placeTree(point);
+                tree.setTreeType(mapFilePoint.getTreeType());
+            }
+
+            /* Place dead trees */
+            if (mapFilePoint.hasDeadTree()) {
+                gameMap.placeDeadTree(point);
             }
 
             /* Place wild animals */
-            if (spot.hasWildAnimal()) {
+            if (mapFilePoint.hasWildAnimal()) {
                 gameMap.placeWildAnimal(point);
             }
 
             /* Set the height */
-            gameMap.setHeightAtPoint(point, spot.getHeight());
+            gameMap.setHeightAtPoint(point, mapFilePoint.getHeight());
         }
 
         /* Set starting points */

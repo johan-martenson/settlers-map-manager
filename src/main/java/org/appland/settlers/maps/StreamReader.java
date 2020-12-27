@@ -317,4 +317,18 @@ public class StreamReader {
 
         return string;
     }
+
+    public ByteArray getUint8ArrayAsByteArray(int length) throws IOException {
+        byte[] bytes = new byte[length];
+
+        int result = inputStream.read(bytes, 0, length);
+
+        if (result == -1) {
+            isEof = true;
+        }
+
+        offset = offset + length;
+
+        return new ByteArray(bytes, this.order);
+    }
 }

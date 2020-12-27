@@ -11,56 +11,64 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Inspector {
 
     /* Define command line options */
-    @Option(name="--info", usage ="Print information about the map")
-    boolean printInfo = false;
+    @Option(name = "--info", usage = "Print information about the map")
+    private boolean printInfo = false;
 
-    @Option(name="--debug", usage="Print debug information")
+    @Option(name = "--info-around-type", usage = "Print information about points surrounding the type. (dead-tree)")
+    String informationAroundType = null;
+
+    @Option(name = "--dir", usage = "Folder to load all maps from")
+    String dir = null;
+
+    @Option(name = "--debug", usage = "Print debug information")
     boolean debug = false;
 
-    @Option(name="--file", usage="Map file to load")
+    @Option(name = "--file", usage = "Map file to load")
     static String mapFilename;
 
-    @Option(name="--mode", usage="Set swd or wld file format explicitly")
-    String mode = "swd";
-
-    @Option(name="--override-width", usage="Override the detected width of the console")
+    @Option(name = "--override-width", usage = "Override the detected width of the console")
     int widthOverride = -1;
 
-    @Option(name="--override-height", usage="Override the detected height of the console")
+    @Option(name = "--override-height", usage = "Override the detected height of the console")
     int heightOverride = -1;
 
-    @Option(name="--compare-available-buildings", usage="Compares the available buildings between the map file and the game map")
+    @Option(name = "--compare-available-buildings", usage = "Compares the available buildings between the map file and the game map")
     boolean compareAvailableBuildings;
 
-    @Option(name="--point-info", handler=SettlersPointHandler.class, usage="Prints detailed information about the given point from the file and from the game map")
+    @Option(name = "--point-info", handler=SettlersPointHandler.class, usage = "Prints detailed information about the given point from the file and from the game map")
     java.awt.Point infoPoint = null;
 
-    @Option(name="--print-starting-points", usage="Prints a list of the starting points")
+    @Option(name = "--print-starting-points", usage = "Prints a list of the starting points")
     private boolean printStartingPoints = false;
 
-    @Option(name="--filter-unreliable-comparisons", usage="When selected points that are close to the border or the headquarter are hidden")
+    @Option(name = "--filter-unreliable-comparisons", usage = "When selected points that are close to the border or the headquarter are hidden")
     private boolean filterUnreliableComparisons = false;
 
-    @Option(name="--render-map-file", usage="Renders an ascii representation of the map file")
+    @Option(name = "--render-map-file", usage = "Renders an ascii representation of the map file")
     private boolean renderMapFile = false;
 
-    @Option(name="--dump-spots", usage="Prints a list of all the spots in the map file")
-    private boolean dumpSpots = false;
+    @Option(name = "--print-points", usage = "Prints a list of all the points in the map file")
+    private boolean printPoints = false;
 
     /* Regular fields */
     private final MapLoader mapLoader;
-    private MapFile   mapFile;
-    private int       consoleHeight;
-    private int       consoleWidth;
-    private GameMap   map;
+
+    private MapFile mapFile;
+    private int     consoleHeight;
+    private int     consoleWidth;
+    private GameMap map;
 
     /**
      * Run the inspector
@@ -74,7 +82,20 @@ public class Inspector {
 
         parser.parseArgument(args);
 
-        inspector.loadMapFile(mapFilename);
+        /* Load the map directly if a map filename is given */
+        if (inspector.isFileSelected()) {
+            inspector.loadMapFile(mapFilename);
+        }
+
+        /* Print information about points surrounding points of type if chosen */
+        if (inspector.isPointsSurroundingTypeSelected()) {
+
+            if (inspector.isFileSelected()) {
+                inspector.printPointsSurroundingPointTypeInFile();
+            } else if (inspector.isDirSelected()) {
+                inspector.printPointsSurroundingPointTypeInAllFiles(inspector.dir);
+            }
+        }
 
         /* Print map info if selected */
         if (inspector.isPrintInfoSelected()) {
@@ -107,6 +128,127 @@ public class Inspector {
         }
     }
 
+    private void printPointsSurroundingPointTypeInAllFiles(String dir) throws IOException, InvalidMapException, SettlersMapLoadingException {
+
+        List<MapFile> mapFiles = new ArrayList<>();
+
+        /* List all maps */
+        List<Path> paths = Files.find(Paths.get(dir),
+                Integer.MAX_VALUE,
+                (path, basicFileAttributes) -> path.toFile().getName().matches(".*.SWD") ||
+                        path.toFile().getName().matches(".*.WLD")
+        ).collect(Collectors.toList());
+
+        /* Print information for points surrounding points of the selected type */
+        for (Path path : paths) {
+
+            if (Files.isDirectory(path)) {
+                continue;
+            }
+
+            String filename = path.toString();
+
+            MapFile mapFile = mapLoader.loadMapFromFile(filename);
+
+            mapFiles.add(mapFile);
+        }
+
+        printPointsSurroundingPointTypeInMapFiles(mapFiles);
+    }
+
+    private boolean isDirSelected() {
+        return dir != null;
+    }
+
+    private void printPointsSurroundingPointTypeInFile() {
+        printPointsSurroundingPointTypeInMapFiles(List.of(this.mapFile));
+    }
+
+    private void printPointsSurroundingPointTypeInMapFiles(List<MapFile> mapFiles) {
+        Map<BuildableSite, Integer> availableConstructionCenter = new HashMap<>();
+        Map<BuildableSite, Integer> availableConstructionLeft = new HashMap<>();
+        Map<BuildableSite, Integer> availableConstructionUpLeft = new HashMap<>();
+        Map<BuildableSite, Integer> availableConstructionUpRight = new HashMap<>();
+        Map<BuildableSite, Integer> availableConstructionRight = new HashMap<>();
+        Map<BuildableSite, Integer> availableConstructionDownRight = new HashMap<>();
+        Map<BuildableSite, Integer> availableConstructionDownLeft = new HashMap<>();
+
+        Map<Texture, Integer> vegetationUpLeft = new HashMap<>();
+        Map<Texture, Integer> vegetationAbove = new HashMap<>();
+        Map<Texture, Integer> vegetationUpRight = new HashMap<>();
+        Map<Texture, Integer> vegetationDownRight = new HashMap<>();
+        Map<Texture, Integer> vegetationBelow = new HashMap<>();
+        Map<Texture, Integer> vegetationDownLeft = new HashMap<>();
+
+        int measuredPoints = 0;
+
+        for (MapFile mapFile : mapFiles) {
+
+            for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
+                if (!mapFilePoint.hasDeadTree()) {
+                    continue;
+                }
+
+                Point point = mapFilePoint.getPosition();
+
+                MapFilePoint mapFilePointLeft = mapFile.getMapFilePoint(point.left());
+                MapFilePoint mapFilePointUpLeft = mapFile.getMapFilePoint(point.upLeft());
+                MapFilePoint mapFilePointUpRight = mapFile.getMapFilePoint(point.upRight());
+                MapFilePoint mapFilePointRight = mapFile.getMapFilePoint(point.right());
+                MapFilePoint mapFilePointDownRight = mapFile.getMapFilePoint(point.downRight());
+                MapFilePoint mapFilePointDownLeft = mapFile.getMapFilePoint(point.downLeft());
+
+                incrementInMap(availableConstructionCenter, mapFilePoint.getBuildableSite());
+                incrementInMap(availableConstructionLeft, mapFilePointLeft.getBuildableSite());
+                incrementInMap(availableConstructionUpLeft, mapFilePointUpLeft.getBuildableSite());
+                incrementInMap(availableConstructionUpRight, mapFilePointUpRight.getBuildableSite());
+                incrementInMap(availableConstructionRight, mapFilePointRight.getBuildableSite());
+                incrementInMap(availableConstructionDownRight, mapFilePointDownRight.getBuildableSite());
+                incrementInMap(availableConstructionDownLeft, mapFilePointDownLeft.getBuildableSite());
+
+                incrementInMap(vegetationUpLeft, mapFilePointUpLeft.getVegetationBelow());
+                incrementInMap(vegetationAbove, mapFilePointUpLeft.getVegetationDownRight());
+                incrementInMap(vegetationUpRight, mapFilePointUpRight.getVegetationBelow());
+                incrementInMap(vegetationDownRight, mapFilePoint.getVegetationDownRight());
+                incrementInMap(vegetationBelow, mapFilePoint.getVegetationBelow());
+                incrementInMap(vegetationDownLeft, mapFilePointLeft.getVegetationDownRight());
+
+                measuredPoints = measuredPoints + 1;
+            }
+        }
+
+        System.out.println();
+        System.out.println("Surrounding available construction");
+
+        System.out.println(" - Center: " + availableConstructionCenter);
+        System.out.println(" - Left: " + availableConstructionLeft);
+        System.out.println(" - Up-left: " + availableConstructionUpLeft);
+        System.out.println(" - Up-right: " + availableConstructionUpRight);
+        System.out.println(" - Right: " + availableConstructionRight);
+        System.out.println(" - Down-right: " + availableConstructionDownRight);
+        System.out.println(" - Down-left: " + availableConstructionDownLeft);
+
+        System.out.println();
+        System.out.println("Surrounding vegetation");
+
+        System.out.println(" - Up-left: " + vegetationUpLeft);
+        System.out.println(" - Above: " + vegetationAbove);
+        System.out.println(" - Up-right: " + vegetationUpRight);
+        System.out.println(" - Down-rRight: " + vegetationDownRight);
+        System.out.println(" - Below: " + vegetationBelow);
+        System.out.println(" - Down-left: " + vegetationDownLeft);
+
+        System.out.println("(" + measuredPoints + " points measured)");
+    }
+
+    private boolean isFileSelected() {
+        return mapFilename != null;
+    }
+
+    private boolean isPointsSurroundingTypeSelected() {
+        return this.informationAroundType.equals("dead-tree");
+    }
+
     private void printMapInfo() {
         System.out.println();
         System.out.println("About the map:");
@@ -125,42 +267,43 @@ public class Inspector {
 
         System.out.println();
         System.out.println("All spots in the map file");
-        for (SpotData spot : mapFile.getSpots()) {
-            Point point = spot.getPosition();
 
-            SpotData spotLeft = mapFile.getSpotAtPoint(point.left());
-            SpotData spotUpLeft = mapFile.getSpotAtPoint(point.upLeft());
-            SpotData spotDownLeft = mapFile.getSpotAtPoint(point.downLeft());
-            SpotData spotRight = mapFile.getSpotAtPoint(point.right());
-            SpotData spotUpRight = mapFile.getSpotAtPoint(point.upRight());
-            SpotData spotDownRight = mapFile.getSpotAtPoint(point.downRight());
+        for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
+            Point point = mapFilePoint.getPosition();
 
-            System.out.print(" - " + point + " available: " + spot.getBuildableSite() +
-                    ", height: " + spot.getHeight() +
+            MapFilePoint spotLeft = mapFile.getMapFilePoint(point.left());
+            MapFilePoint spotUpLeft = mapFile.getMapFilePoint(point.upLeft());
+            MapFilePoint spotDownLeft = mapFile.getMapFilePoint(point.downLeft());
+            MapFilePoint spotRight = mapFile.getMapFilePoint(point.right());
+            MapFilePoint spotUpRight = mapFile.getMapFilePoint(point.upRight());
+            MapFilePoint spotDownRight = mapFile.getMapFilePoint(point.downRight());
+
+            System.out.print(" - " + point + " available: " + mapFilePoint.getBuildableSite() +
+                    ", height: " + mapFilePoint.getHeight() +
                     ", height differences:");
 
             if (spotLeft != null) {
-                System.out.print(" " + (spot.getHeight() - spotLeft.getHeight()));
+                System.out.print(" " + (mapFilePoint.getHeight() - spotLeft.getHeight()));
             }
 
             if (spotUpLeft != null) {
-                System.out.print(" " + (spot.getHeight() - spotUpLeft.getHeight()));
+                System.out.print(" " + (mapFilePoint.getHeight() - spotUpLeft.getHeight()));
             }
 
             if (spotDownLeft!= null) {
-                System.out.print(" " + (spot.getHeight() - spotDownLeft.getHeight()));
+                System.out.print(" " + (mapFilePoint.getHeight() - spotDownLeft.getHeight()));
             }
 
             if (spotRight != null) {
-                System.out.print(" " + (spot.getHeight() - spotRight.getHeight()));
+                System.out.print(" " + (mapFilePoint.getHeight() - spotRight.getHeight()));
             }
 
             if (spotUpRight != null) {
-                System.out.print(" " + (spot.getHeight() - spotUpRight.getHeight()));
+                System.out.print(" " + (mapFilePoint.getHeight() - spotUpRight.getHeight()));
             }
 
             if (spotDownRight!= null) {
-                System.out.print(" " + (spot.getHeight() - spotDownRight.getHeight()));
+                System.out.print(" " + (mapFilePoint.getHeight() - spotDownRight.getHeight()));
             }
 
             System.out.println();
@@ -168,7 +311,7 @@ public class Inspector {
     }
 
     private boolean isDumpSpotsChosen() {
-        return dumpSpots;
+        return printPoints;
     }
 
     private boolean isPrintMapFromFileChosen() {
@@ -211,7 +354,6 @@ public class Inspector {
         mapLoader = new MapLoader();
 
         mapLoader.debug = debug;
-        mapLoader.mode = mode;
 
         consoleWidth = TerminalBuilder.terminal().getWidth();
         consoleHeight = TerminalBuilder.terminal().getHeight();
@@ -299,7 +441,7 @@ public class Inspector {
         System.out.println("Detailed information about " + infoPoint);
 
         /* Print information about the point read from the MapFile */
-        SpotData spot = mapFile.getSpotAtPoint(infoPoint);
+        MapFilePoint spot = mapFile.getMapFilePoint(infoPoint);
         System.out.println();
         System.out.println("Map file");
 
@@ -317,49 +459,49 @@ public class Inspector {
 
         System.out.println(" - Surrounding terrain:");
         System.out.println("   -- Above 1: " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.up()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.up()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getTextureBelow());
+                mapFile.getMapFilePoint(infoPoint.upLeft().upLeft()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.upLeft().upLeft()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.up()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.up()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.upRight().upRight()).getVegetationBelow());
         System.out.println("   -- Above 2: " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft().left()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upRight()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upRight()).getTextureDownRight());
+                mapFile.getMapFilePoint(infoPoint.upLeft().left()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.upLeft()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.upLeft()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.upRight()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.upRight()).getVegetationDownRight());
         System.out.println("   -- Below 1: " +
-                mapFile.getSpotAtPoint(infoPoint.left()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.left()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.right()).getTextureBelow());
+                mapFile.getMapFilePoint(infoPoint.left()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.left()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.right()).getVegetationBelow());
         System.out.println("   -- Below 2: " +
-                mapFile.getSpotAtPoint(infoPoint.left().downLeft()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.downLeft()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.downLeft()).getTextureDownRight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.downRight()).getTextureBelow() + " " +
-                mapFile.getSpotAtPoint(infoPoint.downRight()).getTextureDownRight());
+                mapFile.getMapFilePoint(infoPoint.left().downLeft()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.downLeft()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.downLeft()).getVegetationDownRight() + " " +
+                mapFile.getMapFilePoint(infoPoint.downRight()).getVegetationBelow() + " " +
+                mapFile.getMapFilePoint(infoPoint.downRight()).getVegetationDownRight());
 
         System.out.println(" - Surrounding available buildings:");
         System.out.println("   -- Above 1: " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getBuildableSite()) + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.up()).getBuildableSite()) + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getBuildableSite()));
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.upLeft().upLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.up()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.upRight().upRight()).getBuildableSite()));
         System.out.println("   -- Above 2:           " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upLeft()).getBuildableSite()) + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.upRight()).getBuildableSite()));
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.upLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.upRight()).getBuildableSite()));
         System.out.println("   -- Same:    " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.left()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.left()).getBuildableSite()) + " " +
                 String.format("%-20s", "POINT") + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.right()).getBuildableSite()));
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.right()).getBuildableSite()));
         System.out.println("   -- Below 1:           " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downLeft()).getBuildableSite()) + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downRight()).getBuildableSite()));
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.downLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.downRight()).getBuildableSite()));
         System.out.println("   -- Below 2: " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downLeft().downLeft()).getBuildableSite()) + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.down()).getBuildableSite()) + " " +
-                String.format("%-20s", mapFile.getSpotAtPoint(infoPoint.downRight().downRight()).getBuildableSite()));
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.downLeft().downLeft()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.down()).getBuildableSite()) + " " +
+                String.format("%-20s", mapFile.getMapFilePoint(infoPoint.downRight().downRight()).getBuildableSite()));
 
         System.out.println(" - Surrounding stones and trees:");
         System.out.println("   -- Above 1: " +
@@ -383,23 +525,23 @@ public class Inspector {
 
         System.out.println(" - Surrounding heights:");
         System.out.println("   -- Above 1: " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft().upLeft()).getHeight() + " " +
-                        mapFile.getSpotAtPoint(infoPoint.up()).getHeight() + " " +
-                        mapFile.getSpotAtPoint(infoPoint.upRight().upRight()).getHeight());
+                mapFile.getMapFilePoint(infoPoint.upLeft().upLeft()).getHeight() + " " +
+                        mapFile.getMapFilePoint(infoPoint.up()).getHeight() + " " +
+                        mapFile.getMapFilePoint(infoPoint.upRight().upRight()).getHeight());
         System.out.println("   -- Above 2:   " +
-                mapFile.getSpotAtPoint(infoPoint.upLeft()).getHeight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.upRight()).getHeight());
+                mapFile.getMapFilePoint(infoPoint.upLeft()).getHeight() + " " +
+                mapFile.getMapFilePoint(infoPoint.upRight()).getHeight());
         System.out.println("   -- Same:    " +
-                mapFile.getSpotAtPoint(infoPoint.left()).getHeight() + " " +
-                mapFile.getSpotAtPoint(infoPoint).getHeight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.right()).getHeight());
+                mapFile.getMapFilePoint(infoPoint.left()).getHeight() + " " +
+                mapFile.getMapFilePoint(infoPoint).getHeight() + " " +
+                mapFile.getMapFilePoint(infoPoint.right()).getHeight());
         System.out.println("   -- Below 1:   " +
-                mapFile.getSpotAtPoint(infoPoint.downLeft()).getHeight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.downRight()).getHeight());
+                mapFile.getMapFilePoint(infoPoint.downLeft()).getHeight() + " " +
+                mapFile.getMapFilePoint(infoPoint.downRight()).getHeight());
         System.out.println("   -- Below 2: " +
-                mapFile.getSpotAtPoint(infoPoint.downLeft().downLeft()).getHeight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.down()).getHeight() + " " +
-                mapFile.getSpotAtPoint(infoPoint.downRight().downRight()).getHeight());
+                mapFile.getMapFilePoint(infoPoint.downLeft().downLeft()).getHeight() + " " +
+                mapFile.getMapFilePoint(infoPoint.down()).getHeight() + " " +
+                mapFile.getMapFilePoint(infoPoint.downRight().downRight()).getHeight());
 
         System.out.println();
 
@@ -488,7 +630,7 @@ public class Inspector {
     }
 
     private String treeOrStoneOrNoneString(MapFile mapFile, Point point) {
-        SpotData spot = mapFile.getSpotAtPoint(point);
+        MapFilePoint spot = mapFile.getMapFilePoint(point);
 
         if (spot.hasTree()) {
             return "tree ";
@@ -586,7 +728,7 @@ public class Inspector {
         Map<Point, AvailableBuildingComparison> matched    = new HashMap<>();
         Map<Point, AvailableBuildingComparison> mismatched = new HashMap<>();
         for (Point point : availablePoints.keySet()) {
-            SpotData spot = mapFile.getSpotAtPoint(point);
+            MapFilePoint spot = mapFile.getMapFilePoint(point);
 
             if (!availablePoints.containsKey(point)) {
                 continue;
@@ -638,13 +780,13 @@ public class Inspector {
                 continue;
             }
 
-            SpotData spot = mapFile.getSpotAtPoint(point);
-            SpotData spotLeft = mapFile.getSpotAtPoint(point.left());
-            SpotData spotUpLeft = mapFile.getSpotAtPoint(point.upLeft());
-            SpotData spotDownLeft = mapFile.getSpotAtPoint(point.downLeft());
-            SpotData spotRight = mapFile.getSpotAtPoint(point.right());
-            SpotData spotUpRight = mapFile.getSpotAtPoint(point.upRight());
-            SpotData spotDownRight = mapFile.getSpotAtPoint(point.downRight());
+            MapFilePoint spot = mapFile.getMapFilePoint(point);
+            MapFilePoint spotLeft = mapFile.getMapFilePoint(point.left());
+            MapFilePoint spotUpLeft = mapFile.getMapFilePoint(point.upLeft());
+            MapFilePoint spotDownLeft = mapFile.getMapFilePoint(point.downLeft());
+            MapFilePoint spotRight = mapFile.getMapFilePoint(point.right());
+            MapFilePoint spotUpRight = mapFile.getMapFilePoint(point.upRight());
+            MapFilePoint spotDownRight = mapFile.getMapFilePoint(point.downRight());
 
             System.out.println(" - " + point + " - game: " + comparison.availableInGame + ", file: " + comparison.getAvailableInFile() +
                     ", distance to border: " + distanceToBorder +
@@ -695,7 +837,7 @@ public class Inspector {
 
         String[][] bfr = new String[maxHeight][maxWidth * 2];
 
-        for (SpotData spot : mapFile.getSpots()) {
+        for (MapFilePoint spot : mapFile.getMapFilePoints()) {
 
             int x = spot.getPosition().x;
             int y = spot.getPosition().y;
@@ -706,13 +848,13 @@ public class Inspector {
             }
 
             /* Draw water */
-            if (Texture.isWater(spot.getTextureBelow()) && y > 0) {
+            if (Texture.isWater(spot.getVegetationBelow()) && y > 0) {
                 bfr[y - 1][x] = " ";
             } else if (y > 0 && bfr[y - 1][x] == null) {
                 bfr[y - 1][x] = ".";
             }
 
-            if (y > 0 && x < maxWidth - 2 && Texture.isWater(spot.getTextureDownRight())) {
+            if (y > 0 && x < maxWidth - 2 && Texture.isWater(spot.getVegetationDownRight())) {
                 bfr[y - 1][x + 1] = " ";
             } else if (y > 0 && x < maxWidth - 2 && bfr[y - 1][x + 1] == null) {
                 bfr[y - 1][x + 1] = ".";
@@ -774,5 +916,11 @@ public class Inspector {
         public Size getAvailableInMap() {
             return availableInGame;
         }
+    }
+
+    private <T> void incrementInMap(Map<T, Integer> map, T item) {
+        int amount = map.getOrDefault(item, 0);
+
+        map.put(item, amount + 1);
     }
 }

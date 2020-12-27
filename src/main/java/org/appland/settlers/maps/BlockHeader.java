@@ -38,10 +38,6 @@ public class BlockHeader {
     }
 
     public boolean isValid() {
-        System.out.println(id);
-        System.out.println(0x1027);
-        System.out.println(mustBeZero);
-
         return id == 10000 && mustBeZero == 0;
     }
 

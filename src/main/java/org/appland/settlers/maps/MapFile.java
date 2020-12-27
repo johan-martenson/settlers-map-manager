@@ -22,7 +22,7 @@ public class MapFile {
     private final List<Point> startingPositions;
     private final List<PlayerFace> playerFaces;
     private final List<UniqueMass> masses;
-    private final List<SpotData> spotList;
+    private final List<MapFilePoint> pointList;
 
     int         width;
     int         height;
@@ -35,9 +35,10 @@ public class MapFile {
     int         fileId;
 
     private     String title;
-    private     Map<Point, SpotData> pointToSpots;
-    private     Map<java.awt.Point, SpotData> filePointToSpots;
+    private     Map<Point, MapFilePoint> gamePointToMapFilePointMap;
+    private     Map<java.awt.Point, MapFilePoint> mapFilePointToGamePointMap;
     private     List<java.awt.Point> fileStartingPoints;
+    private     MapTitleType mapTitleType;
 
     public MapFile() {
         width              = -1;
@@ -48,7 +49,7 @@ public class MapFile {
         startingPositions  = new ArrayList<>();
         playerFaces        = new ArrayList<>();
         masses             = new ArrayList<>();
-        spotList           = new ArrayList<>();
+        pointList = new ArrayList<>();
         fileStartingPoints = new ArrayList<>();
     }
 
@@ -106,16 +107,16 @@ public class MapFile {
         return height;
     }
 
-    void addSpot(SpotData spot) {
-        spotList.add(spot);
+    void addSpot(MapFilePoint spot) {
+        pointList.add(spot);
     }
 
     void addMassStartingPoint(java.awt.Point position) {
         // Ignore for now
     }
 
-    Iterable<SpotData> getSpots() {
-        return spotList;
+    Iterable<MapFilePoint> getMapFilePoints() {
+        return pointList;
     }
 
     public List<Point> getStartingPoints() {
@@ -142,8 +143,8 @@ public class MapFile {
         return playerFaces;
     }
 
-    public SpotData getSpot(int i) {
-        return spotList.get(i);
+    public MapFilePoint getSpot(int i) {
+        return pointList.get(i);
     }
 
     /**
@@ -187,12 +188,12 @@ public class MapFile {
         int xInFile = 1;
         boolean nextIsInset = true;
 
-        filePointToSpots = new HashMap<>();
+        mapFilePointToGamePointMap = new HashMap<>();
 
-        for (SpotData spot : spotList) {
+        for (MapFilePoint spot : pointList) {
 
             spot.setPosition(x, y);
-            filePointToSpots.put(new java.awt.Point(xInFile, yInFile), spot);
+            mapFilePointToGamePointMap.put(new java.awt.Point(xInFile, yInFile), spot);
 
             if (xInFile == width) {
 
@@ -220,14 +221,19 @@ public class MapFile {
 
         for (java.awt.Point point : fileStartingPoints) {
 
-            if (point == null || startingPositions == null || filePointToSpots == null || filePointToSpots.get(point) == null) {
-                System.out.println(point);
-                System.out.println(startingPositions);
-                System.out.println(filePointToSpots);
-                System.out.println(filePointToSpots.get(point));
+            /* Filter invalid starting points - this can exist e.g. on mission maps */
+            if (!mapFilePointToGamePointMap.containsKey(point)) {
+                continue;
             }
 
-            SpotData spot = filePointToSpots.get(point);
+            if (point == null || startingPositions == null || mapFilePointToGamePointMap == null || mapFilePointToGamePointMap.get(point) == null) {
+                System.out.println(point);
+                System.out.println(startingPositions);
+                System.out.println(mapFilePointToGamePointMap);
+                System.out.println(mapFilePointToGamePointMap.get(point));
+            }
+
+            MapFilePoint spot = mapFilePointToGamePointMap.get(point);
 
             if (spot == null) {
                 throw new InvalidMapException("The starting point " + point + " is outside of the map.");
@@ -239,14 +245,22 @@ public class MapFile {
 
     public void adjustPointsToGameCoordinates() {
 
-        pointToSpots = new HashMap<>();
+        gamePointToMapFilePointMap = new HashMap<>();
 
-        for (SpotData spot : spotList) {
-            pointToSpots.put(new org.appland.settlers.model.Point(spot.getPosition()), spot);
+        for (MapFilePoint spot : pointList) {
+            gamePointToMapFilePointMap.put(new org.appland.settlers.model.Point(spot.getPosition()), spot);
         }
     }
 
-    public SpotData getSpotAtPoint(Point point) {
-        return pointToSpots.get(point);
+    public MapFilePoint getMapFilePoint(Point point) {
+        return gamePointToMapFilePointMap.get(point);
+    }
+
+    public void setTitleType(MapTitleType titleType) {
+        this.mapTitleType = titleType;
+    }
+
+    public String getTitleType() {
+        return mapTitleType.name();
     }
 }
