@@ -142,29 +142,28 @@ class MapFilePoint {
 
     TreeType getTreeType() {
         if (objectType == 0xC4) {
-
             if (objectProperties >= 0x30 && objectProperties <= 0x37) {
-                return TreeType.TREE_TYPE_1;
+                return TreeType.PINE;
             } else if (objectProperties >= 0x70 && objectProperties <= 0x77) {
-                return TreeType.TREE_TYPE_2;
+                return TreeType.BIRCH;
             } else if (objectProperties >= 0xB0 && objectProperties <= 0xB7) {
-                return TreeType.TREE_TYPE_3;
+                return TreeType.OAK;
             } else if (objectProperties >= 0xF0 && objectProperties <= 0xF7) {
-                return TreeType.TREE_TYPE_4;
+                return TreeType.PALM_1;
             }
         } else if (objectType == 0xC5) {
             if (objectProperties >= 0x30 && objectProperties <= 0x37) {
-                return TreeType.TREE_TYPE_5;
+                return TreeType.PALM_2;
             } else if (objectProperties >= 0x70 && objectProperties <= 0x77) {
-                return TreeType.TREE_TYPE_6;
+                return TreeType.PINE_APPLE;
             } else if (objectProperties >= 0xB0 && objectProperties <= 0xB7) {
-                return TreeType.TREE_TYPE_7;
+                return TreeType.CYPRESS;
             } else if (objectProperties >= 0xF0 && objectProperties <= 0xF7) {
-                return TreeType.TREE_TYPE_8;
+                return TreeType.CHERRY;
             }
         } else if (objectType == 0xC6) {
             if (objectProperties >= 0x30 && objectProperties <= 0x3D) {
-                return TreeType.TREE_TYPE_9;
+                return TreeType.FIR;
             }
         }
 

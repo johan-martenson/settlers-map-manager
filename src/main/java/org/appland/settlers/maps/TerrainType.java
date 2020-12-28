@@ -20,10 +20,6 @@ public enum TerrainType {
         this.id = id;
     }
 
-    public int getValue() {
-        return id;
-    }
-
     static TerrainType fromUint8(short b) {
         for (TerrainType value : TerrainType.values()) {
             if (value.id == (int)b) {

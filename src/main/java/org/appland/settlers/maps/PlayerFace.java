@@ -29,10 +29,6 @@ public enum PlayerFace {
         this.id = id;
     }
 
-    public int getValue() {
-        return id;
-    }
-
     static PlayerFace playerFaceFromShort(short s) {
         switch(s) {
             case 0:

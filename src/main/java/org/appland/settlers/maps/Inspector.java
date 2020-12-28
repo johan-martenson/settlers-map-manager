@@ -889,7 +889,7 @@ public class Inspector {
         return bfr;
     }
 
-    private class AvailableBuildingComparison {
+    private static class AvailableBuildingComparison {
         private final BuildableSite availableInFile;
         private final Size          availableInGame;
         private final boolean       availableFlagInGame;

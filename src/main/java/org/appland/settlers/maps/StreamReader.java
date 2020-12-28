@@ -79,15 +79,15 @@ public class StreamReader {
             isEof = true;
         }
 
-        long[] ints = new long[length];
+        long[] longArray = new long[length];
 
         for (int i = 0; i < bytes.length; i++) {
-            ints[i] = ((long)ByteBuffer.wrap(bytes).order(order).getInt(i * 4) & 0xffffffffL);
+            longArray[i] = ((long)ByteBuffer.wrap(bytes).order(order).getInt(i * 4) & 0xffffffffL);
         }
 
-        offset = offset + length * 4;
+        offset = offset + length * 4L;
 
-        return ints;
+        return longArray;
     }
 
     public List<Long> getUint32ArrayAsList(int length) throws IOException {
@@ -95,8 +95,8 @@ public class StreamReader {
 
         List<Long> list = new ArrayList<>();
 
-        for (int i = 0; i < array.length; i++) {
-            list.add(array[i]);
+        for (long l : array) {
+            list.add(l);
         }
 
         return list;
@@ -165,9 +165,15 @@ public class StreamReader {
     }
 
     public void skip(int i) throws IOException {
-        inputStream.skip(i);
+        long skipped = inputStream.skip(i);
 
-        offset = offset + i;
+        if (skipped < i) {
+            isEof = true;
+        }
+
+        if (skipped > -1) {
+            offset = offset + skipped;
+        }
     }
 
     public short getUint8() throws IOException {
@@ -223,7 +229,7 @@ public class StreamReader {
     public int[] getUint16ArrayAsInts(int length) throws IOException {
         byte[] bytes = new byte[length * 2];
 
-        int[] ints = new int[length];
+        int[] intArray = new int[length];
 
         int result = inputStream.read(bytes, 0, length * 2);
 
@@ -234,12 +240,12 @@ public class StreamReader {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(this.order);
 
         for (int i = 0; i < length; i++) {
-            ints[i] = (byteBuffer.getShort(i * 2) & 0xffff);
+            intArray[i] = (byteBuffer.getShort(i * 2) & 0xffff);
         }
 
-        offset = offset + length * 2;
+        offset = offset + length * 2L;
 
-        return ints;
+        return intArray;
     }
 
     public int getInt32() throws IOException {
@@ -257,9 +263,15 @@ public class StreamReader {
     }
 
     public void setPosition(long pixelOffset) throws IOException {
-        inputStream.skip(pixelOffset - offset);
+        long skipped = inputStream.skip(pixelOffset - offset);
 
-        offset = pixelOffset;
+        if (skipped < pixelOffset - offset) {
+            isEof = true;
+        }
+
+        if (skipped > 0) {
+            offset = offset + skipped;
+        }
     }
 
     public byte getInt8() throws IOException {

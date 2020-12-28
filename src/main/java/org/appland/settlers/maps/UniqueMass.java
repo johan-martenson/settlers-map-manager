@@ -11,9 +11,9 @@ package org.appland.settlers.maps;
  */
 class UniqueMass {
 
-    MassType type;
-    java.awt.Point position;
-    long totalMass;
+    final MassType type;
+    final java.awt.Point position;
+    final long totalMass;
 
     public UniqueMass(MassType type, java.awt.Point position, long totalMass) {
         this.type = type;

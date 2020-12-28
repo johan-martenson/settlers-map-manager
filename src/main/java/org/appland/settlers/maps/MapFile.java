@@ -26,25 +26,20 @@ public class MapFile {
 
     int         width;
     int         height;
-    int         actualWidth;
-    int         actualHeight;
     int         maxNumberOfPlayers;
     TerrainType terrainType;
     String      author;
     boolean     unlimitedPlay;
-    int         fileId;
 
     private     String title;
     private     Map<Point, MapFilePoint> gamePointToMapFilePointMap;
     private     Map<java.awt.Point, MapFilePoint> mapFilePointToGamePointMap;
-    private     List<java.awt.Point> fileStartingPoints;
+    private final List<java.awt.Point> fileStartingPoints;
     private     MapTitleType mapTitleType;
 
     public MapFile() {
         width              = -1;
         height             = -1;
-        actualWidth        = -1;
-        actualHeight       = -1;
         maxNumberOfPlayers = -1;
         startingPositions  = new ArrayList<>();
         playerFaces        = new ArrayList<>();
@@ -226,7 +221,7 @@ public class MapFile {
                 continue;
             }
 
-            if (point == null || startingPositions == null || mapFilePointToGamePointMap == null || mapFilePointToGamePointMap.get(point) == null) {
+            if (point == null || mapFilePointToGamePointMap == null || mapFilePointToGamePointMap.get(point) == null) {
                 System.out.println(point);
                 System.out.println(startingPositions);
                 System.out.println(mapFilePointToGamePointMap);

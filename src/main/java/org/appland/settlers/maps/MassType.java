@@ -20,10 +20,6 @@ public enum MassType {
         this.id = id;
     }
 
-    public int getValue() {
-        return id;
-    }
-
     public static MassType massTypeFromInt(int type) {
 
         switch (type) {

@@ -8,40 +8,11 @@ package org.appland.settlers.maps;
 import org.appland.settlers.model.DetailedVegetation;
 import org.appland.settlers.model.Material;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 /**
  *
  * @author johan
  */
 class Utils {
-
-    public static short getUint8InArray(byte[] arr, int i) {
-        ByteBuffer bb = ByteBuffer.wrap(arr);
-        return ((short)(bb.get(i) & 0xff));
-    }
-
-    public static char getNextUnsignedShort(InputStream is) throws IOException {
-        byte[] bytes = new byte[2];
-
-        is.read(bytes);
-
-        return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getChar();
-    }
-
-    public static char getUint16InArray(byte[] arr, int i) {
-        ByteBuffer bb = ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
-
-        return bb.getChar(i);
-    }
-
-    public static long getUint32InArray(byte[] arr, int i) {
-        ByteBuffer bb = ByteBuffer.wrap(arr).order(ByteOrder.LITTLE_ENDIAN);
-        return ((long)bb.getInt(i) & 0xffffffff);
-    }
 
     static String getHex(byte[] blockHeader1) {
         StringBuilder hex = new StringBuilder();
@@ -51,16 +22,6 @@ class Utils {
         }
 
         return hex.toString();
-    }
-
-    static boolean byteArraysMatch(byte[] blockHeader1, byte[] blockHeader2, int len) {
-        for (int i = 0; i < len; i++) {
-            if (blockHeader1[i] != blockHeader2[i]) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     static DetailedVegetation convertTextureToVegetation(Texture texture) {
@@ -114,30 +75,4 @@ class Utils {
         }
     }
 
-    static String readString(InputStream fis, int length) throws IOException {
-        byte[] array = new byte[length];
-
-        fis.read(array, 0, length);
-
-        int indexOfZero = length;
-
-        for (int i = 0; i < length; i++) {
-            if (array[i] == 0) {
-                indexOfZero = i;
-
-                break;
-            }
-        }
-
-        return new String(array, 0, indexOfZero);
-    }
-
-    static short readUnsignedByte(InputStream fis) throws IOException {
-
-        byte[] bytes = new byte[2];
-
-        fis.read(bytes, 0, 1);
-
-        return Utils.getUint8InArray(bytes, 0);
-    }
 }

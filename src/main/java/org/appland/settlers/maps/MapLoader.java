@@ -296,7 +296,7 @@ public class MapLoader {
         /* Read the header and verify that it matches the first header */
         BlockHeader texturesBelowBlockHeader = readBlockHeaderFromStream(streamReader);
 
-        if (!texturesBelowBlockHeader.equals(texturesBelowBlockHeader)) {
+        if (!texturesBelowBlockHeader.equals(heightBlockHeader)) {
             System.out.println("Header of block for upward triangles doesn't match. Exiting.");
             System.out.println("First header: " + heightBlockHeader);
             System.out.println("Current header: " + texturesBelowBlockHeader);
@@ -322,7 +322,7 @@ public class MapLoader {
         BlockHeader texturesDownRightBlockHeader = readBlockHeaderFromStream(streamReader);
 
         /* Exit if the block fileHeader doesn't match the first fileHeader */
-        if (!texturesDownRightBlockHeader.equals(texturesDownRightBlockHeader)) {
+        if (!texturesDownRightBlockHeader.equals(heightBlockHeader)) {
             System.out.println("Header of block for downward triangles doesn't match. Exiting.");
             System.out.println("First header: " + heightBlockHeader);
             System.out.println("Current header: " + texturesDownRightBlockHeader);
@@ -346,7 +346,7 @@ public class MapLoader {
         BlockHeader roadBlockHeader = readBlockHeaderFromStream(streamReader);
 
         /* Exit if the block fileHeader doesn't match the first fileHeader */
-        if (!roadBlockHeader.equals(roadBlockHeader)) {
+        if (!roadBlockHeader.equals(heightBlockHeader)) {
             System.out.println("Header of road block doesn't match. Exiting.");
             System.out.println("First header: " + heightBlockHeader);
             System.out.println("Current header: " + roadBlockHeader);
