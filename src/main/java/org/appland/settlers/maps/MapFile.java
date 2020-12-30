@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.appland.settlers.maps.Utils.isEven;
+
 /**
  *
  * @author johan
@@ -23,6 +25,9 @@ public class MapFile {
     private final List<PlayerFace> playerFaces;
     private final List<UniqueMass> masses;
     private final List<MapFilePoint> pointList;
+    private final List<java.awt.Point> fileStartingPoints;
+    private final Map<Point, MapFilePoint> gamePointToMapFilePointMap;
+    private final Map<java.awt.Point, MapFilePoint> mapFilePointToGamePointMap;
 
     int         width;
     int         height;
@@ -30,22 +35,20 @@ public class MapFile {
     TerrainType terrainType;
     String      author;
     boolean     unlimitedPlay;
-
     private     String title;
-    private     Map<Point, MapFilePoint> gamePointToMapFilePointMap;
-    private     Map<java.awt.Point, MapFilePoint> mapFilePointToGamePointMap;
-    private final List<java.awt.Point> fileStartingPoints;
     private     MapTitleType mapTitleType;
 
     public MapFile() {
-        width              = -1;
-        height             = -1;
-        maxNumberOfPlayers = -1;
-        startingPositions  = new ArrayList<>();
-        playerFaces        = new ArrayList<>();
-        masses             = new ArrayList<>();
-        pointList = new ArrayList<>();
-        fileStartingPoints = new ArrayList<>();
+        width                      = -1;
+        height                     = -1;
+        maxNumberOfPlayers         = -1;
+        startingPositions          = new ArrayList<>();
+        playerFaces                = new ArrayList<>();
+        masses                     = new ArrayList<>();
+        pointList                  = new ArrayList<>();
+        fileStartingPoints         = new ArrayList<>();
+        mapFilePointToGamePointMap = new HashMap<>();
+        gamePointToMapFilePointMap = new HashMap<>();
     }
 
     void setTitle(String title) {
@@ -143,7 +146,7 @@ public class MapFile {
     }
 
     /**
-     * Assign positions to the spots
+     * Map map file positions to game points
      *
      * The spots in the map file are saved according to the pattern:
      *
@@ -159,60 +162,71 @@ public class MapFile {
      *      1,1       3,1
      * 0,0       2,0
      *
-     * The starting points read from the file start with y as 0 on the top row and then increases downwards. X is the
-     * number of data points in the file on the current row. This means that y is increasing while the in-game y is
-     * ascending and x is half the in-game x.
-     *
-     * Unknown: does y and x start at 0 or 1?
-     *
-     * Starting point in file: 3, 4
-     *
-     *   00  01  02  03
-     * 04  05  06  07
-     *   08  09  0A  **   <----- Starting point
-     * 0C  0D  0E  0F
-     *
+     * With cropping:
+     *  - Every second row starts at x = -1
+     *  - Width in gamemap becomes width_in_file x 2 - 2
+     *  - Height in gamemap depends on if cropping is needed
+     *      - If height is even - no cropping is needed
+     *      - If height is odd - need to crop last row. height_in_game = height_in_file - 1
      *
      */
-    void assignPositionsToSpots() {
+    public void mapFilePointsToGamePoints() {
+        int rowLength = width;
 
-        int y = height + 1;
-        int yInFile = 0;
-        int x = 1;
+        /* Set initial values */
+        int indexWithinRow = 1;
+        int mapFileY = 1; // FIXME: are mapfile coordinates starting at 1 or 0?
+        int mapFileX = 1;
+        int gamePointX;
+        int gamePointY;
 
-        int xInFile = 1;
-        boolean nextIsInset = true;
+        /* Start game point x at 0 if height is even, otherwise 1 */
+        if (isEven(height)) {
+            gamePointY = height;
+            gamePointX = 0;
+        } else {
+            gamePointY = height - 1;
+            gamePointX = 1;
+        }
 
-        mapFilePointToGamePointMap = new HashMap<>();
+        /* Go through each map file point and calculate its coordinates in mapfile coordinates and game points */
+        for (MapFilePoint mapFilePoint : pointList) {
 
-        for (MapFilePoint spot : pointList) {
+            /* Store mapping from game point and map file coordinates to the map file point */
+            Point gamePoint = new Point(gamePointX, gamePointY);
+            java.awt.Point mapFilePosition = new java.awt.Point(mapFileX, mapFileY);
 
-            spot.setPosition(x, y);
-            mapFilePointToGamePointMap.put(new java.awt.Point(xInFile, yInFile), spot);
+            gamePointToMapFilePointMap.put(gamePoint, mapFilePoint);
+            mapFilePointToGamePointMap.put(mapFilePosition, mapFilePoint);
 
-            if (xInFile == width) {
+            mapFilePoint.setPositionAsGamePoint(gamePoint);
 
-                if (nextIsInset) {
-                    x = 2;
+            /* Go to next row if the current row is done */
+            if (indexWithinRow == rowLength) {
+                indexWithinRow = 1;
+
+                mapFileY = mapFileY + 1;
+                gamePointY = gamePointY - 1;
+
+                mapFileX = 1;
+
+                if (isEven(gamePointY)) {
+                    gamePointX = 0;
                 } else {
-                    x = 1;
+                    gamePointX = 1;
                 }
 
-                y--;
-                yInFile++;
-
-                nextIsInset = !nextIsInset;
-                xInFile = 1;
+            /* Go to next place in the row */
             } else {
-                x += 2;
-                xInFile++;
+                indexWithinRow = indexWithinRow + 1;
+
+                mapFileX = mapFileX + 1;
+                gamePointX = gamePointX + 2;
             }
         }
     }
 
     void translateFileStartingPointsToGamePoints() throws InvalidMapException {
-
-        // filePointToSpots.get(point) == null (?)
 
         for (java.awt.Point point : fileStartingPoints) {
 
@@ -234,16 +248,13 @@ public class MapFile {
                 throw new InvalidMapException("The starting point " + point + " is outside of the map.");
             }
 
-            startingPositions.add(new org.appland.settlers.model.Point(spot.getPosition()));
+            startingPositions.add(new org.appland.settlers.model.Point(spot.getGamePointPosition()));
         }
     }
 
     public void adjustPointsToGameCoordinates() {
-
-        gamePointToMapFilePointMap = new HashMap<>();
-
-        for (MapFilePoint spot : pointList) {
-            gamePointToMapFilePointMap.put(new org.appland.settlers.model.Point(spot.getPosition()), spot);
+        for (MapFilePoint mapFilePoint : pointList) {
+            gamePointToMapFilePointMap.put(new org.appland.settlers.model.Point(mapFilePoint.getGamePointPosition()), mapFilePoint);
         }
     }
 

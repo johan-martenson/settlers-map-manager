@@ -189,7 +189,7 @@ public class Inspector {
                     continue;
                 }
 
-                Point point = mapFilePoint.getPosition();
+                Point point = mapFilePoint.getGamePointPosition();
 
                 MapFilePoint mapFilePointLeft = mapFile.getMapFilePoint(point.left());
                 MapFilePoint mapFilePointUpLeft = mapFile.getMapFilePoint(point.upLeft());
@@ -269,7 +269,7 @@ public class Inspector {
         System.out.println("All spots in the map file");
 
         for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
-            Point point = mapFilePoint.getPosition();
+            Point point = mapFilePoint.getGamePointPosition();
 
             MapFilePoint spotLeft = mapFile.getMapFilePoint(point.left());
             MapFilePoint spotUpLeft = mapFile.getMapFilePoint(point.upLeft());
@@ -630,11 +630,11 @@ public class Inspector {
     }
 
     private String treeOrStoneOrNoneString(MapFile mapFile, Point point) {
-        MapFilePoint spot = mapFile.getMapFilePoint(point);
+        MapFilePoint mapFilePoint = mapFile.getMapFilePoint(point);
 
-        if (spot.hasTree()) {
+        if (mapFilePoint.hasTree()) {
             return "tree ";
-        } else if (spot.hasStone()) {
+        } else if (mapFilePoint.hasStone()) {
             return "stone";
         } else {
             return "  x  ";
@@ -728,7 +728,7 @@ public class Inspector {
         Map<Point, AvailableBuildingComparison> matched    = new HashMap<>();
         Map<Point, AvailableBuildingComparison> mismatched = new HashMap<>();
         for (Point point : availablePoints.keySet()) {
-            MapFilePoint spot = mapFile.getMapFilePoint(point);
+            MapFilePoint mapFilePoint = mapFile.getMapFilePoint(point);
 
             if (!availablePoints.containsKey(point)) {
                 continue;
@@ -736,7 +736,7 @@ public class Inspector {
 
             AvailableBuildingComparison comparison = new AvailableBuildingComparison(availablePoints.get(point),
                     map.isAvailableFlagPoint(player, point),
-                    spot.getBuildableSite());
+                    mapFilePoint.getBuildableSite());
 
             /* Collect matches and mismatches */
             if (comparison.matches()) {
@@ -837,10 +837,10 @@ public class Inspector {
 
         String[][] bfr = new String[maxHeight][maxWidth * 2];
 
-        for (MapFilePoint spot : mapFile.getMapFilePoints()) {
+        for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
 
-            int x = spot.getPosition().x;
-            int y = spot.getPosition().y;
+            int x = mapFilePoint.getGamePointPosition().x;
+            int y = mapFilePoint.getGamePointPosition().y;
 
             /* Skip points that will not appear on screen */
             if (x >= maxWidth || y >= maxHeight) {
@@ -848,25 +848,25 @@ public class Inspector {
             }
 
             /* Draw water */
-            if (Texture.isWater(spot.getVegetationBelow()) && y > 0) {
+            if (Texture.isWater(mapFilePoint.getVegetationBelow()) && y > 0) {
                 bfr[y - 1][x] = " ";
             } else if (y > 0 && bfr[y - 1][x] == null) {
                 bfr[y - 1][x] = ".";
             }
 
-            if (y > 0 && x < maxWidth - 2 && Texture.isWater(spot.getVegetationDownRight())) {
+            if (y > 0 && x < maxWidth - 2 && Texture.isWater(mapFilePoint.getVegetationDownRight())) {
                 bfr[y - 1][x + 1] = " ";
             } else if (y > 0 && x < maxWidth - 2 && bfr[y - 1][x + 1] == null) {
                 bfr[y - 1][x + 1] = ".";
             }
 
             /* Place stones */
-            if (spot.hasStone()) {
+            if (mapFilePoint.hasStone()) {
                 bfr[y][x] = "O";
             }
 
             /* Place trees */
-            if (spot.hasTree()) {
+            if (mapFilePoint.hasTree()) {
                 bfr[y][x] = "T";
             }
         }

@@ -27,7 +27,7 @@ class MapFilePoint {
     private Animal animal;
     private BuildableSite buildableSite;
     private Resource resource;
-    private Point position;
+    private Point gamePointPosition;
 
     void setHeight(int heightAtPoint) {
         height = heightAtPoint;
@@ -174,12 +174,16 @@ class MapFilePoint {
         return animal != null;
     }
 
-    public void setPosition(int index, int row) {
-        position = new Point(index, row);
+    public void setPositionAsGamePoint(Point gamePoint) {
+        gamePointPosition = gamePoint;
     }
 
-    public org.appland.settlers.model.Point getPosition() {
-        return position;
+    public void setPositionAsGamePoint(int index, int row) {
+        gamePointPosition = new Point(index, row);
+    }
+
+    public org.appland.settlers.model.Point getGamePointPosition() {
+        return gamePointPosition;
     }
 
     public BuildableSite getBuildableSite() {

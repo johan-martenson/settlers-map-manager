@@ -30,6 +30,8 @@ public class MapLoader {
     @Option(name="--debug", usage="Print debug information")
     boolean debug = true;
 
+    private boolean doCropping = true;
+
     public static void main(String[] args) {
 
         /* Parse command line and start */
@@ -578,8 +580,7 @@ public class MapLoader {
         /* Footer, always 0xFF */
 
         /* Post process the map file */
-        mapFile.assignPositionsToSpots();
-        mapFile.adjustPointsToGameCoordinates();
+        mapFile.mapFilePointsToGamePoints();
         mapFile.translateFileStartingPointsToGamePoints();
 
         return mapFile;
@@ -611,7 +612,12 @@ public class MapLoader {
         /* Set up the terrain */
         for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
 
-            org.appland.settlers.model.Point point = mapFilePoint.getPosition();
+            org.appland.settlers.model.Point point = mapFilePoint.getGamePointPosition();
+
+            /* Filter points that have been cropped out */ // TODO: support cropping on/off
+            if (doCropping && (point.x < 1 || point.x >= gameMap.getWidth() || point.y < 1 || point.y >= gameMap.getHeight())) {
+                continue;
+            }
 
             /* Assign textures */
             gameMap.setDetailedVegetationBelow(point, Utils.convertTextureToVegetation(mapFilePoint.getVegetationBelow()));
