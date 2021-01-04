@@ -33,7 +33,7 @@ public enum Texture {                 // Build road   Build    Crops     Mine   
     LAVA_2(20),                    //    -           -         -        -           -
     LAVA_3(21),                    //    -           -         -        -           -
     LAVA_4(22),                    //    -           -         -        -           -
-    BUILDABLE_MOUNTAIN(23);      //    X           X         -        -           -
+    BUILDABLE_MOUNTAIN(23);        //    X           X         -        -           -
 
     private final int id;
 

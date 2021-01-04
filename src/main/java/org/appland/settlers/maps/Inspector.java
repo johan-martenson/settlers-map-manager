@@ -574,29 +574,29 @@ public class Inspector {
 
         System.out.println(" - Surrounding terrain:");
         System.out.println("   -- Above 1: " +
-                map.getTileUpLeft(infoPoint.up()) + " " +
-                map.getTileAbove(infoPoint.up()) + " " +
-                map.getTileUpRight(infoPoint.up()));
+                map.getDetailedVegetationUpLeft(infoPoint.up()) + " " +
+                map.getDetailedVegetationAbove(infoPoint.up()) + " " +
+                map.getDetailedVegetationUpRight(infoPoint.up()));
         System.out.println("   -- Above 2: " +
-                map.getTileDownLeft(infoPoint.up()) + " " +
-                map.getTileBelow(infoPoint.up()) + " " +
-                map.getTileDownRight(infoPoint.up()));
+                map.getDetailedVegetationDownLeft(infoPoint.up()) + " " +
+                map.getDetailedVegetationBelow(infoPoint.up()) + " " +
+                map.getDetailedVegetationDownRight(infoPoint.up()));
         System.out.println("   -- Above 3: " +
-                map.getTileUpLeft(infoPoint) + " " +
-                map.getTileAbove(infoPoint) + " " +
-                map.getTileUpRight(infoPoint));
+                map.getDetailedVegetationUpLeft(infoPoint) + " " +
+                map.getDetailedVegetationAbove(infoPoint) + " " +
+                map.getDetailedVegetationUpRight(infoPoint));
         System.out.println("   -- Below 1: " +
-                map.getTileDownLeft(infoPoint) + " " +
-                map.getTileBelow(infoPoint) + " " +
-                map.getTileDownRight(infoPoint));
+                map.getDetailedVegetationDownLeft(infoPoint) + " " +
+                map.getDetailedVegetationBelow(infoPoint) + " " +
+                map.getDetailedVegetationDownRight(infoPoint));
         System.out.println("   -- Below 2: " +
-                map.getTileUpLeft(infoPoint.down()) + " " +
-                map.getTileAbove(infoPoint.down()) + " " +
-                map.getTileUpRight(infoPoint.down()));
+                map.getDetailedVegetationUpLeft(infoPoint.down()) + " " +
+                map.getDetailedVegetationAbove(infoPoint.down()) + " " +
+                map.getDetailedVegetationUpRight(infoPoint.down()));
         System.out.println("   -- Below 3: " +
-                map.getTileDownLeft(infoPoint.down()) + " " +
-                map.getTileBelow(infoPoint.down()) + " " +
-                map.getTileDownRight(infoPoint.down()));
+                map.getDetailedVegetationDownLeft(infoPoint.down()) + " " +
+                map.getDetailedVegetationBelow(infoPoint.down()) + " " +
+                map.getDetailedVegetationDownRight(infoPoint.down()));
 
         System.out.println(" - Surrounding available buildings:");
         System.out.println("   -- Above 1: " +
