@@ -4,6 +4,7 @@ import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
 import org.appland.settlers.model.Tree;
+import org.appland.settlers.model.TreeSize;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
@@ -310,11 +311,19 @@ public class MapLoader {
 
         /* Read the below texture for each point on the map */
         for (int i = 0; i < subBlockSize; i++) {
-            Texture texture = Texture.textureFromUint8(streamReader.getUint8());
 
-            mapFile.getSpot(i).setVegetationBelow(texture);
+            MapFilePoint mapFilePoint = mapFile.getSpot(i);
 
-            // Look for possible harbor locations - value & 0x40 != 0
+            /* Set the textures */
+            Short belowTextureShort = streamReader.getUint8();
+            Texture texture = Texture.textureFromUint8(belowTextureShort);
+
+            mapFilePoint.setVegetationBelow(texture);
+
+            /* Set the possible harbors */
+            if ((belowTextureShort & 0x40) != 0) {
+                mapFilePoint.setPossibleHarbor();
+            }
         }
 
         /* Read textures for down-pointing triangles */
@@ -637,8 +646,9 @@ public class MapLoader {
 
             /* Place trees */
             if (mapFilePoint.hasTree()) {
-                Tree tree = gameMap.placeTree(point);
-                tree.setTreeType(mapFilePoint.getTreeType());
+                Tree.TreeType treeType = mapFilePoint.getTreeType();
+
+                gameMap.placeTree(point, treeType, TreeSize.FULL_GROWN);
             }
 
             /* Place dead trees */
@@ -649,6 +659,11 @@ public class MapLoader {
             /* Place wild animals */
             if (mapFilePoint.hasWildAnimal()) {
                 gameMap.placeWildAnimal(point);
+            }
+
+            /* Set available harbor */
+            if (mapFilePoint.isPossiblePlaceForHarbor()) {
+                gameMap.setPossiblePlaceForHarbor(point);
             }
 
             /* Set the height */

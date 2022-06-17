@@ -28,6 +28,11 @@ class MapFilePoint {
     private BuildableSite buildableSite;
     private Resource resource;
     private Point gamePointPosition;
+    private boolean isPossibleHarbor;
+
+    public MapFilePoint() {
+        isPossibleHarbor = false;
+    }
 
     void setHeight(int heightAtPoint) {
         height = heightAtPoint;
@@ -196,5 +201,13 @@ class MapFilePoint {
 
     public boolean hasDeadTree() {
         return (objectType == NATURE_DECORATION_1 || objectType == NATURE_DECORATION_2) && objectProperties == DEAD_TREE;
+    }
+
+    public boolean isPossiblePlaceForHarbor() {
+        return isPossibleHarbor;
+    }
+
+    public void setPossibleHarbor() {
+        isPossibleHarbor = true;
     }
 }

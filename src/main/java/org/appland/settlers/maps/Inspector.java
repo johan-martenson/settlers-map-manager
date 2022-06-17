@@ -7,6 +7,8 @@ import org.appland.settlers.model.Player;
 import org.appland.settlers.model.Point;
 import org.appland.settlers.model.Size;
 import org.jline.terminal.TerminalBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
@@ -28,6 +30,9 @@ public class Inspector {
 
     @Option(name = "--info-around-type", usage = "Print information about points surrounding the type. (dead-tree)")
     String informationAroundType = null;
+
+    @Option(name = "--include-negative", usage = "Use together with --info-around-type to also print information for non-matching points")
+    private boolean includeNegative = false;
 
     @Option(name = "--dir", usage = "Folder to load all maps from")
     String dir = null;
@@ -62,6 +67,9 @@ public class Inspector {
     @Option(name = "--print-points", usage = "Prints a list of all the points in the map file")
     private boolean printPoints = false;
 
+    @Option(name = "--to-json", usage = "Writes a json file with information about the map")
+    private String toJson = null;
+
     /* Regular fields */
     private final MapLoader mapLoader;
 
@@ -89,11 +97,12 @@ public class Inspector {
 
         /* Print information about points surrounding points of type if chosen */
         if (inspector.isPointsSurroundingTypeSelected()) {
+            InformationType informationType = InformationType.fromString(inspector.informationAroundType);
 
             if (inspector.isFileSelected()) {
-                inspector.printPointsSurroundingPointTypeInFile();
+                inspector.printPointsSurroundingPointTypeInFile(informationType);
             } else if (inspector.isDirSelected()) {
-                inspector.printPointsSurroundingPointTypeInAllFiles(inspector.dir);
+                inspector.printPointsSurroundingPointTypeInAllFiles(inspector.dir, informationType);
             }
         }
 
@@ -126,9 +135,82 @@ public class Inspector {
         if (inspector.isDumpSpotsChosen()) {
             inspector.printSpotList();
         }
+
+        /* Write to json */
+        if (inspector.isToJsonchosen()) {
+            inspector.writeToJson();
+        }
     }
 
-    private void printPointsSurroundingPointTypeInAllFiles(String dir) throws IOException, InvalidMapException, SettlersMapLoadingException {
+    private void writeToJson() throws IOException, InvalidMapException, SettlersMapLoadingException {
+        MapFile mapFile = mapLoader.loadMapFromFile(mapFilename);
+
+        JSONObject jsonMap = new JSONObject();
+
+        jsonMap.put("title", mapFile.getTitle());
+        jsonMap.put("author", mapFile.getAuthor());
+        jsonMap.put("width", mapFile.getWidth());
+        jsonMap.put("height", mapFile.getHeight());
+        jsonMap.put("maxNumberPlayers", mapFile.getMaxNumberOfPlayers());
+        jsonMap.put("terrain", mapFile.getTerrainType().name().toUpperCase());
+
+        JSONArray jsonStartingPoints = new JSONArray();
+
+        jsonMap.put("startingPoints", jsonStartingPoints);
+
+        for (Point point : mapFile.getStartingPoints()) {
+            JSONObject jsonPoint = new JSONObject();
+
+            jsonPoint.put("x", point.x);
+            jsonPoint.put("y", point.y);
+
+            jsonStartingPoints.add(jsonPoint);
+        }
+
+        JSONArray jsonMapPoints = new JSONArray();
+
+        jsonMap.put("points", jsonMapPoints);
+
+        for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
+            JSONObject jsonMapFilePoint = new JSONObject();
+
+            Point gamePoint = mapFilePoint.getGamePointPosition();
+
+            jsonMapFilePoint.put("x", gamePoint.x);
+            jsonMapFilePoint.put("y", gamePoint.y);
+            jsonMapFilePoint.put("height", mapFilePoint.getHeight());
+
+            jsonMapFilePoint.put("vegetationBelow", mapFilePoint.getVegetationBelow().name().toUpperCase());
+            jsonMapFilePoint.put("vegetationDownRight", mapFilePoint.getVegetationDownRight().name().toUpperCase());
+
+            jsonMapFilePoint.put("vegetationBelowAsInt", mapFilePoint.getVegetationBelow().ordinal());
+            jsonMapFilePoint.put("vegetationDownRightAsInt", mapFilePoint.getVegetationDownRight().ordinal());
+
+            if (mapFilePoint.hasStone()) {
+                jsonMapFilePoint.put("stone", mapFilePoint.getStoneAmount());
+            }
+
+            if (mapFilePoint.hasTree()) {
+                jsonMapFilePoint.put("tree", mapFilePoint.getTreeType().name().toUpperCase());
+                jsonMapFilePoint.put("treeAsInt", mapFilePoint.getTreeType().ordinal());
+            }
+
+            if (mapFilePoint.getBuildableSite() != null) {
+                jsonMapFilePoint.put("canBuild", mapFilePoint.getBuildableSite().name().toUpperCase());
+                jsonMapFilePoint.put("canBuildAsInt", mapFilePoint.getBuildableSite().ordinal());
+            }
+
+            jsonMapPoints.add(jsonMapFilePoint);
+        }
+
+        Files.writeString(Paths.get(toJson), jsonMap.toJSONString());
+    }
+
+    private boolean isToJsonchosen() {
+        return toJson != null;
+    }
+
+    private void printPointsSurroundingPointTypeInAllFiles(String dir, InformationType informationType) throws IOException, InvalidMapException, SettlersMapLoadingException {
 
         List<MapFile> mapFiles = new ArrayList<>();
 
@@ -153,18 +235,18 @@ public class Inspector {
             mapFiles.add(mapFile);
         }
 
-        printPointsSurroundingPointTypeInMapFiles(mapFiles);
+        printPointsSurroundingPointTypeInMapFiles(mapFiles, informationType);
     }
 
     private boolean isDirSelected() {
         return dir != null;
     }
 
-    private void printPointsSurroundingPointTypeInFile() {
-        printPointsSurroundingPointTypeInMapFiles(List.of(this.mapFile));
+    private void printPointsSurroundingPointTypeInFile(InformationType informationType) {
+        printPointsSurroundingPointTypeInMapFiles(List.of(this.mapFile), informationType);
     }
 
-    private void printPointsSurroundingPointTypeInMapFiles(List<MapFile> mapFiles) {
+    private void printPointsSurroundingPointTypeInMapFiles(List<MapFile> mapFiles, InformationType informationType) {
         Map<BuildableSite, Integer> availableConstructionCenter = new HashMap<>();
         Map<BuildableSite, Integer> availableConstructionLeft = new HashMap<>();
         Map<BuildableSite, Integer> availableConstructionUpLeft = new HashMap<>();
@@ -185,7 +267,9 @@ public class Inspector {
         for (MapFile mapFile : mapFiles) {
 
             for (MapFilePoint mapFilePoint : mapFile.getMapFilePoints()) {
-                if (!mapFilePoint.hasDeadTree()) {
+
+                /* Filter points that don't match the requested information */
+                if (informationType == InformationType.DEAD_TREE && !mapFilePoint.hasDeadTree()) {
                     continue;
                 }
 
@@ -246,7 +330,7 @@ public class Inspector {
     }
 
     private boolean isPointsSurroundingTypeSelected() {
-        return this.informationAroundType.equals("dead-tree");
+        return this.informationAroundType != null && (this.informationAroundType.equals("dead-tree") || this.informationAroundType.equals("possible-shipyard"));
     }
 
     private void printMapInfo() {
@@ -922,5 +1006,17 @@ public class Inspector {
         int amount = map.getOrDefault(item, 0);
 
         map.put(item, amount + 1);
+    }
+
+    private enum InformationType {
+        POSSIBLE_SHIPYARD, DEAD_TREE;
+
+        public static InformationType fromString(String informationAroundType) {
+            if (informationAroundType.equals("dead-tree")) {
+                return InformationType.DEAD_TREE;
+            }
+
+            return null;
+        }
     }
 }
