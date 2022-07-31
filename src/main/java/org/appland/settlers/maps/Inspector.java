@@ -137,7 +137,7 @@ public class Inspector {
         }
 
         /* Write to json */
-        if (inspector.isToJsonchosen()) {
+        if (inspector.isToJsonChosen()) {
             inspector.writeToJson();
         }
     }
@@ -206,7 +206,7 @@ public class Inspector {
         Files.writeString(Paths.get(toJson), jsonMap.toJSONString());
     }
 
-    private boolean isToJsonchosen() {
+    private boolean isToJsonChosen() {
         return toJson != null;
     }
 
@@ -498,7 +498,7 @@ public class Inspector {
             }
         }
 
-        System.out.println(sb.toString());
+        System.out.println(sb);
     }
 
     /**
@@ -707,7 +707,7 @@ public class Inspector {
 
         System.out.println(" - Distance to border: " + distance);
 
-        /* Print the distance to the headquarter */
+        /* Print the distance to the headquarters */
         System.out.println(" - Distance headquarter: " + distanceInGame(infoPoint, getHeadquarterForPlayer(player).getPosition()));
 
         System.out.println();
@@ -747,7 +747,7 @@ public class Inspector {
     }
 
     /**
-     * Returns the headquarter for the given player
+     * Returns the headquarters for the given player
      *
      * @param player
      * @return
@@ -801,7 +801,7 @@ public class Inspector {
             System.out.println("Starting point for player from GameMap: " + map.getStartingPoints().get(0));
         }
 
-        /* Place a headquarter for the player to get the game to calculate available buildings points within the
+        /* Place a headquarters for the player to get the game to calculate available buildings points within the
         * border
         * */
         map.placeBuilding(new Headquarter(player), map.getStartingPoints().get(0));
@@ -857,7 +857,7 @@ public class Inspector {
             int distanceToBorder = getDistanceToBorder(point, player);
             int distanceToHeadquarter = distanceInGame(point, headquarter.getPosition());
 
-            /* Filter comparisons where the point is too close to the border or the headquarter */
+            /* Filter comparisons where the point is too close to the border or the headquarters */
             if (filterUnreliableComparisons && isComparisonUnreliable(distanceToBorder, distanceToHeadquarter)) {
                 filtered++;
 

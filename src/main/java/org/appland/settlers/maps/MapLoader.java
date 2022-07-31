@@ -1,5 +1,6 @@
 package org.appland.settlers.maps;
 
+import org.appland.settlers.model.DecorationType;
 import org.appland.settlers.model.GameMap;
 import org.appland.settlers.model.Material;
 import org.appland.settlers.model.Player;
@@ -216,11 +217,6 @@ public class MapLoader {
                     unusedBytes[0] + " " +
                     unusedBytes[0] + " " +
                     unusedBytes[0] + " ");
-            /*throw new SettlersMapLoadingException("Not zeros although mandatory. Are instead " +
-                    reusedArray[0] + " " +
-                    reusedArray[0] + " " +
-                    reusedArray[0] + " " +
-                    reusedArray[0] + " ");*/
         }
 
         /* Extra 01 00 bytes may appear here but no files seen so far have this -- might be bug in one map */
@@ -315,7 +311,7 @@ public class MapLoader {
             MapFilePoint mapFilePoint = mapFile.getSpot(i);
 
             /* Set the textures */
-            Short belowTextureShort = streamReader.getUint8();
+            short belowTextureShort = streamReader.getUint8();
             Texture texture = Texture.textureFromUint8(belowTextureShort);
 
             mapFilePoint.setVegetationBelow(texture);
@@ -654,6 +650,15 @@ public class MapLoader {
             /* Place dead trees */
             if (mapFilePoint.hasDeadTree()) {
                 gameMap.placeDeadTree(point);
+            }
+
+            /* Handle remaining nature decorations */
+            if (mapFilePoint.isNatureDecoration()) {
+                DecorationType decorationType = mapFilePoint.getNatureDecorationType();
+
+                if (DecorationType.NO_IMPACT_ON_GAME.contains(decorationType)) {
+                    gameMap.placeDecoration(point, decorationType);
+                }
             }
 
             /* Place wild animals */

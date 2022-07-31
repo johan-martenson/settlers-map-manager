@@ -146,7 +146,7 @@ public class MapFile {
     }
 
     /**
-     * Map map file positions to game points
+     * Map file positions to game points
      *
      * The spots in the map file are saved according to the pattern:
      *
@@ -249,12 +249,6 @@ public class MapFile {
             }
 
             startingPositions.add(new org.appland.settlers.model.Point(spot.getGamePointPosition()));
-        }
-    }
-
-    public void adjustPointsToGameCoordinates() {
-        for (MapFilePoint mapFilePoint : pointList) {
-            gamePointToMapFilePointMap.put(new org.appland.settlers.model.Point(mapFilePoint.getGamePointPosition()), mapFilePoint);
         }
     }
 
